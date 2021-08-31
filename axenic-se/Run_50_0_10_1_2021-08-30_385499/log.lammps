@@ -1,0 +1,352 @@
+LAMMPS (20 Nov 2019)
+# NUFEB simulation
+
+atom_style	bio
+atom_modify	map array sort 1000 5.0e-7
+boundary	ff ff ff
+newton		off
+processors  * * *
+
+comm_modify	vel yes
+#variable reps loop 1
+read_data_bio atom_50_0_10_1_2021-08-30.in
+  orthogonal box = (0 0 0) to (0.0001 0.0001 5e-05)
+  2 by 2 by 2 MPI processor grid
+  reading atoms ...
+  50 atoms
+  4 nutrients
+#shell mkdir Run_50_0_10_1
+#shell cd Run_50_0_10_1
+##############Define initial particle distribution##############
+
+lattice sc 1e-6 origin 0 0 0
+Lattice spacing in x,y,z = 100 100 100
+region reg block 0 1000 0 1000 0 100
+
+group CYANO type 1
+50 atoms in group CYANO
+group ECW type 2
+0 atoms in group ECW
+
+neighbor	5e-7 bin
+neigh_modify	delay 0 one 5000
+
+##############Define DEM Variables&Commands##############
+
+pair_style  gran/hooke/history 1.e-4 NULL 1.e-5 NULL 0.0 1
+pair_coeff  * *
+
+timestep 10
+
+fix 1 all nve/limit 1e-8
+fix fv all viscous 1e-5
+
+fix zw all wall/gran hooke/history 2000 NULL 500.0 NULL 1.5 0 zplane  0.0  5e-05
+
+variable kanc equal 50
+
+variable ke equal 5e+10
+
+
+##############Define IBm Variables##############
+
+#variables used in fix eps_extract
+variable EPSdens equal 30
+variable EPSratio equal 1.3
+
+#variables used in fix division
+variable divDia1 equal 1.96e-6
+variable divDia2 equal 1.04e-6
+
+#variables used in fix kinetics
+variable diffT equal 1e-4
+variable tol equal 1e-11
+variable etaHET equal 0.6
+variable layer equal -1
+
+#variables used in fix death
+#variable deadDia equal 9e-7
+
+
+##############Define IBm Commands##############
+
+fix k1 all kinetics 100 10 10 5 v_diffT v_layer niter 1000000
+fix kgm all kinetics/growth/monod sucexp 0.1
+fix g1 all kinetics/diffusion v_tol
+fix d1 CYANO divide 100 v_EPSdens v_divDia1 310669
+fix d2 ECW divide 100 v_EPSdens v_divDia2 803778
+#fix d2 all death 1 v_deadDia demflag 0
+
+
+##############Define IBm Computes##############
+
+compute myNtypes all ntypes
+compute myMass all biomass
+compute myCon all avg_con
+
+##############Simulation exit condition##############
+variable co2 equal c_myCon[4]
+fix 10 all halt 100 v_co2 <= 1e-19
+
+variable light equal c_myCon[1]
+fix 11 all halt 100 v_light <= 1e-19
+
+##############Simulation Output##############
+dump    id all custom 100 output.lammmps id type diameter x y z
+dump    du1 all vtk 100 atom_*.vtu id type diameter x y z
+dump    du2 all grid 100 grid_%_*.vti con
+dump    du3 all bio 100 ntypes biomass avg_con
+dump    traj all bio/hdf5 100 trajectory.h5 id type radius x y z con
+thermo_style    custom step cpu atoms c_myNtypes[*] c_myMass[*] c_myCon[*]
+thermo		100
+thermo_modify	lost ignore
+
+
+run 10000
+Model is defined as a closed system. 
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 5000, page size: 100000
+  master list distance cutoff = 2.44e-06
+  ghost atom cutoff = 2.44e-06
+  binsize = 1.22e-06, bins = 82 82 41
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair gran/hooke/history, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/newtoff
+      stencil: half/bin/3d/newtoff
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.964 | 11.5 | 12.34 Mbytes
+Step CPU Atoms c_myNtypes[1] c_myNtypes[2] c_myMass[1] c_myMass[2] c_myCon[1] c_myCon[2] c_myCon[3] c_myCon[4] 
+       0            0       50           50            0 4.5439728e-14            0          0.1        0.009     3.42e-20       0.0299 
+number of iterations: 322699 
+     100     4.916043       50           50            0 4.6343923e-14            0          0.1 0.0090012935 0.00090009729  0.029897847 
+number of iterations: 20441 
+     200    5.4555057       50           50            0 4.7266111e-14            0          0.1 0.0090013193 0.0017899322  0.029897804 
+number of iterations: 20527 
+     300    5.9890029       51           51            0 4.8206649e-14            0          0.1 0.0090013455 0.0026973421   0.02989776 
+number of iterations: 20614 
+     400    6.5306014       52           52            0 4.9165903e-14            0          0.1 0.0090013723 0.0036227374  0.029897716 
+number of iterations: 20700 
+     500    7.0915095       53           53            0 5.0144244e-14            0          0.1 0.0090013996 0.0045664979   0.02989767 
+number of iterations: 20787 
+     600    7.6407419       55           55            0 5.1142054e-14            0          0.1 0.0090014275  0.005529001  0.029897624 
+number of iterations: 20874 
+     700    8.1728587       55           55            0 5.2159718e-14            0          0.1 0.0090014559  0.006510635  0.029897576 
+number of iterations: 20960 
+     800    8.7108996       55           55            0 5.3197633e-14            0          0.1 0.0090014849 0.0075117844  0.029897528 
+number of iterations: 21060 
+     900    9.2649727       56           56            0 5.4256201e-14            0          0.1 0.0090015144 0.0085328391  0.029897479 
+number of iterations: 21134 
+    1000    9.7977381       56           56            0 5.5335834e-14            0          0.1 0.0090015445 0.0095741985  0.029897429 
+number of iterations: 21221 
+    1100    10.337976       57           57            0 5.6436949e-14            0          0.1 0.0090015753  0.010636268  0.029897378 
+number of iterations: 21308 
+    1200    10.899355       59           59            0 5.7559976e-14            0          0.1 0.0090016066  0.011719462  0.029897325 
+number of iterations: 21394 
+    1300    11.449812       59           59            0 5.8705349e-14            0          0.1 0.0090016386  0.012824203  0.029897272 
+number of iterations: 21481 
+    1400    12.041108       60           60            0 5.9873514e-14            0          0.1 0.0090016712  0.013950919  0.029897218 
+number of iterations: 21568 
+    1500    12.594283       60           60            0 6.1064924e-14            0          0.1 0.0090017045   0.01510005  0.029897162 
+number of iterations: 21655 
+    1600    13.135283       60           60            0 6.2280042e-14            0          0.1 0.0090017384  0.016272041  0.029897106 
+number of iterations: 21742 
+    1700    13.693157       62           62            0 6.3519338e-14            0          0.1  0.009001773  0.017467347  0.029897048 
+number of iterations: 21828 
+    1800    14.289025       63           63            0 6.4783296e-14            0          0.1 0.0090018083  0.018686434   0.02989699 
+number of iterations: 22280 
+    1900    14.901753       65           65            0 6.6072404e-14            0          0.1 0.0090018466  0.019929772  0.029896926 
+number of iterations: 22009 
+    2000    15.513632       68           68            0 6.7387164e-14            0          0.1 0.0090018833  0.021197847  0.029896865 
+number of iterations: 22979 
+    2100    16.118581       70           70            0 6.8728087e-14            0          0.1 0.0090019271  0.022491151  0.029896792 
+number of iterations: 22199 
+    2200    16.691873       76           76            0 7.0095692e-14            0          0.1 0.0090019655  0.023810187  0.029896728 
+number of iterations: 22286 
+    2300    17.299708       77           77            0 7.149051e-14            0          0.1 0.0090020046  0.025155465  0.029896663 
+number of iterations: 22389 
+    2400    17.865433       77           77            0 7.2913084e-14            0          0.1 0.0090020445   0.02652751  0.029896596 
+number of iterations: 22493 
+    2500     18.41544       78           78            0 7.4363965e-14            0          0.1 0.0090020852  0.027926853  0.029896529 
+number of iterations: 22597 
+    2600    18.999448       78           78            0 7.5843717e-14            0          0.1 0.0090021267  0.029354037  0.029896459 
+number of iterations: 22702 
+    2700    19.584708       79           79            0 7.7352915e-14            0          0.1  0.009002169  0.030809618  0.029896389 
+number of iterations: 22806 
+    2800    20.203447       79           79            0 7.8892143e-14            0          0.1 0.0090022122  0.032294159  0.029896317 
+number of iterations: 22910 
+    2900    20.814558       80           80            0   8.0462e-14            0          0.1 0.0090022562  0.033808238  0.029896244 
+number of iterations: 23015 
+    3000    21.420431       80           80            0 8.2063096e-14            0          0.1 0.0090023011  0.035352442  0.029896169 
+number of iterations: 23119 
+    3100    22.031433       81           81            0 8.3696051e-14            0          0.1 0.0090023469  0.036927372  0.029896093 
+number of iterations: 23223 
+    3200     22.61872       82           82            0  8.53615e-14            0          0.1 0.0090023936  0.038533637  0.029896015 
+number of iterations: 23328 
+    3300    23.183129       82           82            0 8.7060089e-14            0          0.1 0.0090024412  0.040171863  0.029895936 
+number of iterations: 23432 
+    3400     23.77493       83           83            0 8.8792478e-14            0          0.1 0.0090024898  0.041842684  0.029895855 
+number of iterations: 23537 
+    3500    24.385468       83           83            0 9.055934e-14            0          0.1 0.0090025394   0.04354675  0.029895772 
+number of iterations: 23639 
+    3600    24.959703       86           86            0 9.236136e-14            0          0.1 0.0090025899  0.045284702  0.029895688 
+number of iterations: 23746 
+    3700    25.544034       89           89            0 9.4199237e-14            0          0.1 0.0090026415  0.047057235  0.029895602 
+number of iterations: 24675 
+    3800    26.173207       91           91            0 9.6073687e-14            0          0.1 0.0090027017  0.048865037  0.029895502 
+number of iterations: 23972 
+    3900    26.804286       91           91            0 9.7985435e-14            0          0.1 0.0090027555   0.05070881  0.029895412 
+number of iterations: 24079 
+    4000    27.412048       94           94            0 9.9935225e-14            0          0.1 0.0090028103  0.052589271  0.029895321 
+number of iterations: 24186 
+    4100      28.0132       95           95            0 1.0192381e-13            0          0.1 0.0090028663  0.054507148  0.029895228 
+number of iterations: 24286 
+    4200    28.667549       97           97            0 1.0395197e-13            0          0.1 0.0090029233  0.056463186  0.029895133 
+number of iterations: 24391 
+    4300    29.275863       99           99            0 1.0602049e-13            0          0.1 0.0090029815  0.058458145  0.029895036 
+number of iterations: 24508 
+    4400     29.89343      102          102            0 1.0813017e-13            0          0.1 0.0090030408  0.060492799  0.029894937 
+number of iterations: 24600 
+    4500    30.510347      103          103            0 1.1028182e-13            0          0.1 0.0090031013  0.062567937  0.029894837 
+number of iterations: 25256 
+    4600    31.140194      108          108            0 1.124763e-13            0          0.1 0.0090031685  0.064684369  0.029894725 
+number of iterations: 24821 
+    4700    31.764236      110          110            0 1.1471444e-13            0          0.1 0.0090032316  0.066842912   0.02989462 
+number of iterations: 24931 
+    4800    32.392655      112          112            0 1.1699711e-13            0          0.1 0.0090032959   0.06904441  0.029894513 
+number of iterations: 25027 
+    4900    33.001821      115          115            0 1.1932521e-13            0          0.1 0.0090033615  0.071289708  0.029894403 
+number of iterations: 25142 
+    5000     33.64933      120          120            0 1.2169964e-13            0          0.1 0.0090034284  0.073579684  0.029894292 
+number of iterations: 25241 
+    5100    34.285449      125          125            0 1.2412131e-13            0          0.1 0.0090034966  0.075915225  0.029894178 
+number of iterations: 25346 
+    5200    34.922764      127          127            0 1.2659117e-13            0          0.1 0.0090035662  0.078297239  0.029894063 
+number of iterations: 24935 
+    5300    35.549079      132          132            0 1.2911018e-13            0          0.1 0.0090036318  0.080726651  0.029893953 
+number of iterations: 25545 
+    5400    36.189344      134          134            0 1.3167931e-13            0          0.1 0.0090037041  0.083204403  0.029893833 
+number of iterations: 25651 
+    5500    36.872455      137          137            0 1.3429957e-13            0          0.1 0.0090037778  0.085731458   0.02989371 
+number of iterations: 26461 
+    5600    37.530508      145          145            0 1.3697196e-13            0          0.1 0.0090038636  0.088308792  0.029893567 
+number of iterations: 25875 
+    5700    38.169798      145          145            0 1.3969754e-13            0          0.1 0.0090039404  0.090937409  0.029893439 
+number of iterations: 25981 
+    5800    38.794319      145          145            0 1.4247734e-13            0          0.1 0.0090040189  0.093618331  0.029893309 
+number of iterations: 26086 
+    5900    39.449333      147          147            0 1.4531247e-13            0          0.1 0.0090040988  0.096352598  0.029893176 
+number of iterations: 26570 
+    6000     40.10817      148          148            0 1.4820401e-13            0          0.1 0.0090041853  0.099141271  0.029893032 
+number of iterations: 26304 
+    6100    40.761879      149          149            0 1.5115308e-13            0          0.1 0.0090042686   0.10198543  0.029892893 
+number of iterations: 26411 
+    6200    41.416537      152          152            0 1.5416084e-13            0          0.1 0.0090043535   0.10488619  0.029892752 
+number of iterations: 26514 
+    6300     42.08602      156          156            0 1.5722845e-13            0          0.1 0.0090044401   0.10784467  0.029892607 
+number of iterations: 26619 
+    6400    42.753743      157          157            0 1.603571e-13            0          0.1 0.0090045285   0.11086202   0.02989246 
+number of iterations: 27275 
+    6500    43.412443      161          161            0 1.6354801e-13            0          0.1 0.0090046283   0.11393941  0.029892294 
+number of iterations: 26841 
+    6600    44.062392      165          165            0 1.6680241e-13            0          0.1 0.0090047204   0.11707803  0.029892141 
+number of iterations: 26946 
+    6700    44.797767      166          166            0 1.7012158e-13            0          0.1 0.0090048143   0.12027911  0.029891984 
+number of iterations: 27052 
+    6800    45.500146      168          168            0 1.7350678e-13            0          0.1 0.0090049101   0.12354388  0.029891825 
+number of iterations: 26821 
+    6900    46.164316      172          172            0 1.7695935e-13            0          0.1  0.009005003   0.12687362   0.02989167 
+number of iterations: 27400 
+    7000    46.865051      177          177            0 1.8048062e-13            0          0.1 0.0090051047   0.13026961  0.029891501 
+number of iterations: 27364 
+    7100    47.538395      177          177            0 1.8407196e-13            0          0.1 0.0090052063   0.13373317  0.029891332 
+number of iterations: 27469 
+    7200    48.217279      179          179            0 1.8773477e-13            0          0.1 0.0090053099   0.13726566  0.029891159 
+number of iterations: 27575 
+    7300    48.887538      182          182            0 1.9147046e-13            0          0.1 0.0090054155   0.14086843  0.029890983 
+number of iterations: 27680 
+    7400    49.673695      184          184            0 1.9528048e-13            0          0.1 0.0090055233   0.14454289  0.029890804 
+number of iterations: 27530 
+    7500    50.375456      189          189            0 1.9916632e-13            0          0.1  0.009005629   0.14829047  0.029890628 
+number of iterations: 28130 
+    7600     51.07601      194          194            0 2.0312948e-13            0          0.1 0.0090057453   0.15211263  0.029890434 
+number of iterations: 28540 
+    7700    51.792112      195          195            0 2.071715e-13            0          0.1 0.0090058729   0.15601081  0.029890222 
+number of iterations: 28113 
+    7800    52.463056      197          197            0 2.1129396e-13            0          0.1 0.0090059898   0.15998656  0.029890027 
+number of iterations: 28218 
+    7900    53.168031      203          203            0 2.1549844e-13            0          0.1  0.009006109   0.16404142  0.029889829 
+number of iterations: 28326 
+    8000    53.878429      208          208            0 2.1978659e-13            0          0.1 0.0090062305   0.16817697  0.029889626 
+number of iterations: 27948 
+    8100    54.593581      213          213            0 2.2416007e-13            0          0.1 0.0090063436   0.17239482  0.029889438 
+number of iterations: 29157 
+    8200    55.336882      218          218            0 2.2862058e-13            0          0.1 0.0090064827   0.17669659  0.029889206 
+number of iterations: 28892 
+    8300     56.08068      225          225            0 2.3316984e-13            0          0.1 0.0090066166   0.18108396  0.029888983 
+number of iterations: 28498 
+    8400    57.091489      232          232            0 2.3780963e-13            0          0.1 0.0090067432   0.18555863  0.029888772 
+number of iterations: 27897 
+    8500    57.919883      238          238            0 2.4254174e-13            0          0.1 0.0090068581   0.19012233  0.029888581 
+number of iterations: 29379 
+    8600     59.13767      244          244            0 2.4736802e-13            0          0.1 0.0090070047   0.19477685  0.029888337 
+number of iterations: 29760 
+    8700    60.036187      251          251            0 2.5229033e-13            0          0.1 0.0090071614   0.19952399  0.029888076 
+number of iterations: 29390 
+    8800    61.039169      255          255            0 2.5731059e-13            0          0.1 0.0090073085   0.20436558  0.029887831 
+number of iterations: 28975 
+    8900     61.86226      262          262            0 2.6243075e-13            0          0.1 0.0090074466   0.20930352  0.029887601 
+number of iterations: 29389 
+    9000    62.638878      267          267            0 2.6765279e-13            0          0.1 0.0090075947   0.21433971  0.029887355 
+number of iterations: 29463 
+    9100    63.417736      272          272            0 2.7297874e-13            0          0.1 0.0090077452   0.21947611  0.029887104 
+number of iterations: 29597 
+    9200     64.14761      278          278            0 2.7841068e-13            0          0.1 0.0090078993   0.22471472  0.029886847 
+number of iterations: 29869 
+    9300    64.895631      286          286            0 2.839507e-13            0          0.1 0.0090080605   0.23005757  0.029886579 
+number of iterations: 30143 
+    9400    65.626311      291          291            0 2.8960096e-13            0          0.1 0.0090082292   0.23550673  0.029886298 
+number of iterations: 29925 
+    9500    66.350105      296          296            0 2.9536365e-13            0          0.1  0.009008393   0.24106432  0.029886025 
+number of iterations: 30031 
+    9600    67.116212      299          299            0 3.0124101e-13            0          0.1   0.00900856    0.2467325  0.029885747 
+number of iterations: 30139 
+    9700    67.851044      305          305            0 3.0723533e-13            0          0.1 0.0090087303   0.25251346  0.029885464 
+number of iterations: 30242 
+    9800    68.826229      308          308            0 3.1334892e-13            0          0.1 0.0090089041   0.25840946  0.029885174 
+number of iterations: 29991 
+    9900     69.63361      314          314            0 3.1958417e-13            0          0.1 0.0090090713   0.26442278  0.029884896 
+number of iterations: 30549 
+   10000    70.660723      321          321            0 3.2594349e-13            0          0.1 0.0090092546   0.27055575  0.029884591 
+Loop time of 70.6608 on 8 procs for 10000 steps with 321 atoms
+
+Performance: 122274345.343 tau/day, 141.521 timesteps/s
+87.0% CPU use with 8 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.010213   | 0.011931   | 0.013657   |   1.2 |  0.02
+Neigh   | 0.0076797  | 0.0091985  | 0.010609   |   1.3 |  0.01
+Comm    | 0.047536   | 0.058      | 0.066848   |   2.7 |  0.08
+Output  | 13.42      | 13.42      | 13.422     |   0.0 | 18.99
+Modify  | 57.091     | 57.093     | 57.094     |   0.0 | 80.80
+Other   |            | 0.06883    |            |       |  0.10
+
+Nlocal:    40.125 ave 57 max 24 min
+Histogram: 2 1 0 1 0 0 1 0 2 1
+Nghost:    10.375 ave 16 max 5 min
+Histogram: 3 0 0 0 1 0 1 0 1 2
+Neighs:    49.75 ave 75 max 29 min
+Histogram: 3 0 0 1 0 1 0 1 1 1
+
+Total # of neighbors = 398
+Ave neighs/atom = 1.23988
+Neighbor list builds = 128
+Dangerous builds = 0
+#shell cd ..
+#clear
+#next reps
+#jump SELF
+Total wall time: 0:01:10
