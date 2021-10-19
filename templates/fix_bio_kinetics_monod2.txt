@@ -506,7 +506,7 @@ void FixKineticsMonod::growth_cyano(int i, int grid) {
 
   //sucrose export-induced growth reduction
   r4 = r1 * ${alpha} * suc_exp / (${kappa} + suc_exp); 
-  r5 = ${beta} * suc_exp / (${kappa_2} + suc_exp) + ${delta}; 
+  r5 = ${beta} * r1 * (suc_exp / (${kappa_2} + suc_exp) + ${delta}); 
   //nutrient utilization
   nur[isub][grid] += (-1 / yield[i]) * (r1 + r5) * xdensity[i][grid];
   nur[ico2][grid] += (-1 / yield[i]) * (r1 + r5) * xdensity[i][grid];
