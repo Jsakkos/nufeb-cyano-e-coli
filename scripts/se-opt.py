@@ -17,7 +17,7 @@ from sklearn.metrics import mean_squared_error
 from skopt import dump, load
 from skopt.callbacks import CheckpointSaver
 
-test_data = pd.read_excel('../experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
+test_data = pd.read_excel('/home/12x/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
 def od_func(x):
     """Exponential fit to IPTG vs OD750 experimental data
