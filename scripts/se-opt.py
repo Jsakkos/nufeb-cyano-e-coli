@@ -103,7 +103,7 @@ def func(x):
 
 
 
-alpha_min = float('-1e0')
+""" alpha_min = float('-1e0')
 alpha_max = float('0')
 tau_min = float('0')
 tau_max = float('1e0')
@@ -113,6 +113,19 @@ alpha2_min = float('-1e1')
 alpha2_max = float('1e-1')
 tau2_min = float('0')
 tau2_max = float('1e0')
+c2_min = float('0')
+c2_max = float('1e1') """
+
+alpha_min = float('-2e-1')
+alpha_max = float('0')
+tau_min = float('1e-2')
+tau_max = float('1e-1')
+c_min = float('0')
+c_max = float('5e-1')
+alpha2_min = float('-1e1')
+alpha2_max = float('0')
+tau2_min = float('1e-2')
+tau2_max = float('1e-1')
 c2_min = float('0')
 c2_max = float('1e1')
 
