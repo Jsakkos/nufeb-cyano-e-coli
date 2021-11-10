@@ -92,7 +92,7 @@ def func(x):
         text = f'nufeb-seed --cells 10,0 --t 8700 --mucya {mu} --sucR {iptg}'
         os.system(text)
     #Run new simulations
-    run_nufeb = subprocess.run('/mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch', stdout=subprocess.DEVNULL)
+    os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
     BASE_DIR = Path(f'runs/')
     folders = [path for path in BASE_DIR.iterdir() if path.is_dir()]
 
