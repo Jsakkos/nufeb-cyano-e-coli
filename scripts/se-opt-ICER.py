@@ -57,7 +57,7 @@ def recompile(alpha,tau,c,alpha2,tau2,c2):
     with open("/mnt/home/sakkosjo/NUFEB/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
        f.writelines(result)
     #Compile NUFEB
-    nufeb_compile = subprocess.run('/mnt/home/sakkosjo/rapid-compile.sh')
+    os.system('/mnt/home/sakkosjo/rapid-compile.sh')
 
 def func(x):
     """Optimization function
