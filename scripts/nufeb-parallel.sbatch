@@ -7,6 +7,7 @@
 #SBATCH -t 10:00
 #SBATCH --output=nufeb-parallel.out
 #SBATCH --error=nufeb-parallel.err
+#SBATCH -W
 
 module load parallel
 
