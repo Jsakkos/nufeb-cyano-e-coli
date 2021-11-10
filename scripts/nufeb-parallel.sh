@@ -1,13 +1,4 @@
 #!/bin/bash -l
-#SBATCH -J loop
-#SBATCH -A vermaaslab
-#SBATCH --ntasks=72
-#SBATCH --ntasks-per-node=8
-#SBATCH --mem-per-cpu=10g
-#SBATCH -t 10:00
-#SBATCH --output=nufeb-parallel.out
-#SBATCH --error=nufeb-parallel.err
-
 module load parallel
 
 export LAMMPS=~/NUFEB/lammps/src/lmp_png
