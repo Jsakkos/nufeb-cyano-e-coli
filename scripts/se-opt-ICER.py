@@ -128,7 +128,7 @@ def func(x):
 
     Nfeval += 1
     #return #(((df.OD750-test_data.OD750)/test_data.OD750)**2).sum() + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).sum()
-    return mean_squared_error(df.OD750,test_data.OD750,sample_weight=test_data.OD750, squared = False) + mean_squared_error(df.Sucrose,test_data.Sucrose, sample_weight=test_data.Sucrose, squared = False)
+    return mean_squared_error(df.OD750,test_data.OD750,sample_weight=test_data.OD750) + mean_squared_error(df.Sucrose,test_data.Sucrose, sample_weight=test_data.Sucrose)
 
 alpha_min = float('-5e-1')
 alpha_max = float('0')
