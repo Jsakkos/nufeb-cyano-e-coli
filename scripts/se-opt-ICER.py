@@ -127,18 +127,19 @@ def func(x):
     #Compare output with experimental data via RMSE
 
     Nfeval += 1
-    return (((df.OD750-test_data.OD750)/test_data.OD750)**2).sum() + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).sum()
+    #return #(((df.OD750-test_data.OD750)/test_data.OD750)**2).sum() + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).sum()
+    return mean_squared_error(df.OD750,test_data.OD750, squared = False,sample_weight=test_data.OD750) + mean_squared_error(df.Sucrose,test_data.Sucrose, squared = False,sample_weight=test_data.Sucrose)
 
 alpha_min = float('-5e-1')
 alpha_max = float('0')
-tau_min = float('1e-2')
-tau_max = float('1e0')
+tau_min = float('1e-3')
+tau_max = float('1e-1')
 c_min = float('0')
-c_max = float('1e-3')
+c_max = float('5e-1')
 alpha2_min = float('-1e1')
 alpha2_max = float('0')
-tau2_min = float('1e-2')
-tau2_max = float('1e0')
+tau2_min = float('1e-3')
+tau2_max = float('1e-1')
 c2_min = float('0')
 c2_max = float('1e1')
 
