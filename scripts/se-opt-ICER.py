@@ -150,7 +150,7 @@ bounds = [(alpha_min,alpha_max),(tau_min,tau_max),(c_min,c_max),(alpha2_min,alph
 
 
 checkpoint_saver = CheckpointSaver('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-icer.pkl', compress=9)
-n_calls = 15
+n_calls = 500
 
 res = gp_minimize(func, bounds, n_calls=n_calls,verbose=True,
                   callback=[checkpoint_saver])

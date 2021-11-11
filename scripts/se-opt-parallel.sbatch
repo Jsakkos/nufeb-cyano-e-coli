@@ -1,11 +1,13 @@
 #!/bin/bash -l
-#SBATCH -J loop
+#SBATCH -J se-optimization
 #SBATCH -A vermaaslab
-#SBATCH --ntasks=72
-#SBATCH --ntasks-per-node=8
-#SBATCH --mem-per-cpu=5g
-#SBATCH -t 1:00:00
+#SBATCH --nodes 1
+#SBATCH --ntasks=8
+#SBATCH --mem=20g
+#SBATCH -t 10:00:00
 #SBATCH --output=nufeb-parallel.out
 #SBATCH --error=nufeb-parallel.err
+#SBATCH --mail-type=END
+#SBATCH --mail-user=sakkosjo@msu.edu
 
 python3 /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/se-opt-ICER.py
