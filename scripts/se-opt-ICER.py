@@ -115,7 +115,7 @@ def func(x):
     
     #Compare output with experimental data via RMSE
     
-    return ((df.OD750-test_data.OD750)/test_data.OD750)**2 + ((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2
+    return (((df.OD750-test_data.OD750)/test_data.OD750)**2).sum() + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).sum()
 
 alpha_min = float('-2e-1')
 alpha_max = float('0')
