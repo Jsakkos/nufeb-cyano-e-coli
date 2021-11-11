@@ -11,7 +11,12 @@
 
 module load parallel
 
+for i in 0 .005 .01 .02 .05 .1 .2 .5 1
+do
+nufeb-seed --cells 10,0 --t 8700 --sucR ${i}
+done
+
 export LAMMPS=~/NUFEB/lammps/src/lmp_png
 cd ~/NUFEB
 srun="srun -N1 -n8 --mpi=pmi2 --time 10:00"
-parallel -j $SLURM_NTASKS --joblog logs/runtask.log --resume "cd {1} && $srun $LAMMPS -in *.lammps > nufeb.log" ::: runs/*/
+parallel -j $SLURM_NTASKS "cd {1} && $srun $LAMMPS -in *.lammps > nufeb.log" ::: runs/*/
