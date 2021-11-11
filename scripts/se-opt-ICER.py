@@ -129,16 +129,16 @@ def func(x):
     Nfeval += 1
     return (((df.OD750-test_data.OD750)/test_data.OD750)**2).sum() + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).sum()
 
-alpha_min = float('-2e-1')
+alpha_min = float('-5e-1')
 alpha_max = float('0')
 tau_min = float('1e-2')
-tau_max = float('1e-1')
+tau_max = float('1e0')
 c_min = float('0')
-c_max = float('5e-1')
+c_max = float('1e-3')
 alpha2_min = float('-1e1')
 alpha2_max = float('0')
 tau2_min = float('1e-2')
-tau2_max = float('1e-1')
+tau2_max = float('1e0')
 c2_min = float('0')
 c2_max = float('1e1')
 
