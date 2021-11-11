@@ -20,6 +20,7 @@ from skopt.callbacks import CheckpointSaver
 test_data = pd.read_excel('/mnt/home/sakkosjo/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
 
+Nfeval = 1
 
 def od_func(x):
     """Exponential fit to IPTG vs OD750 experimental data
@@ -68,6 +69,7 @@ def func(x):
     Returns:
         [type]: RMSE
     """
+    global Nfeval
     #OD750 fitting
     alpha = x[0]
     tau = x[1]
@@ -85,7 +87,7 @@ def func(x):
     print(f'alpha: {alpha},tau: {tau},c: {c},alpha2: {alpha2},tau2: {tau2},c2: {c2}, mu: {mu}')
 
     #Clean old simulations
-    os.chdir('/mnt/home/sakkosjo/NUFEB')
+    os.chdir('/mnt/gs18/scratch/users/sakkosjo')
     os.system('nufeb-clean')
     #Seed new simulations
     for iptg in test_data.IPTG:
@@ -112,9 +114,19 @@ def func(x):
     df = df.loc[(df.Hours > 23.8) & (df.Hours < 24)]
     df.sort_values(by='IPTG',inplace=True)
     df.reset_index(inplace=True)
-    
+    #save in progress plot
+    f, ax = plt.subplots(ncols=2)
+    ax[0].set_title('Sucrose')
+    ax[0].plot(test_data.IPTG,test_data.Sucrose,marker='o')
+    ax[0].plot(df.IPTG,df.Sucrose)
+    ax[1].set_title('OD750')
+    ax[1].plot(test_data.IPTG,test_data.OD750,marker='o')
+    ax[1].plot(df.IPTG,df.OD750)
+    f.tight_layout()
+    f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/se-opt{Nfeval}.png')
     #Compare output with experimental data via RMSE
-    
+
+    Nfeval += 1
     return (((df.OD750-test_data.OD750)/test_data.OD750)**2).sum() + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).sum()
 
 alpha_min = float('-2e-1')
