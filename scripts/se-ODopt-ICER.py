@@ -131,10 +131,10 @@ def func(x):
 #return mean_squared_error(df.OD750,test_data.OD750,sample_weight=test_data.OD750) + mean_squared_error(df.Sucrose,test_data.Sucrose, sample_weight=test_data.Sucrose)
 
 alpha_min = float('-5e-1')
-alpha_max = float('0')
+alpha_max = float('-1e-2')
 tau_min = float('1e-3')
 tau_max = float('1e-1')
-c_min = float('0')
+c_min = float('1e-3')
 c_max = float('5e-1')
 
 
