@@ -96,7 +96,8 @@ def func(x):
     #Extract output
 
     data = [utils.get_data(directory=str(x)) for x in folders]
-    Volume = 1e-4*1e-4*1e-5 #m^3
+    Volume = np.prod(data[0].metadata['Dimensions'])
+    #Volume = 1e-4*1e-4*1e-5 #m^3
     CellNum2OD = Volume*1e6/0.3e-8
     SucroseMW = 342.3
     dfs = []
