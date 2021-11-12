@@ -86,7 +86,7 @@ def func(x):
     os.system('nufeb-clean')
     #Seed new simulations
     for iptg in test_data.IPTG:
-        text = f'nufeb-seed --cells 10,0 --t 8700 --sucR {iptg}'
+        text = f'nufeb-seed --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700 --sucR {iptg}'
         os.system(text)
     #Run new simulations
     os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
