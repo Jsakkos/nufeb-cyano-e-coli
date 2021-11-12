@@ -127,8 +127,18 @@ def func(x):
     #Compare output with experimental data via RMSE
 
     Nfeval += 1
-    return (((df.OD750-test_data.OD750)/test_data.OD750)**2).sum() + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).sum()
-    #return mean_squared_error(df.OD750,test_data.OD750,sample_weight=test_data.OD750) + mean_squared_error(df.Sucrose,test_data.Sucrose, sample_weight=test_data.Sucrose)
+    if len(df.OD750)==len(test_data.OD750):
+        ODerr = np.average((test_data.OD750 - df.OD750) ** 2, axis=0, weights=test_data.OD750)
+    else:
+        ODerr = (((df.OD750-test_data.OD750)/test_data.OD750)**2).mean()
+
+    if len(df.Sucrose)==len(test_data.Sucrose):
+        ODerr = np.average((test_data.Sucrose - df.Sucrose) ** 2, axis=0, weights=test_data.Sucrose)
+    else:
+        SUCerr = (((df.Sucrose-test_data.Sucrose)/test_data.Sucrose)**2).mean()
+    return ODerr + SUCerr
+#return  + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).mean()
+#return mean_squared_error(df.OD750,test_data.OD750,sample_weight=test_data.OD750) + mean_squared_error(df.Sucrose,test_data.Sucrose, sample_weight=test_data.Sucrose)
 
 alpha_min = float('-5e-1')
 alpha_max = float('0')
@@ -151,7 +161,7 @@ bounds = [(alpha_min,alpha_max),(tau_min,tau_max),(c_min,c_max),(alpha2_min,alph
 
 
 checkpoint_saver = CheckpointSaver('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-icer.pkl', compress=9)
-n_calls = 500
+n_calls = 200
 
 res = gp_minimize(func, bounds, n_calls=n_calls,verbose=True,
                   callback=[checkpoint_saver])
