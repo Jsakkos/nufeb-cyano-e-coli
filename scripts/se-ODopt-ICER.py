@@ -75,8 +75,6 @@ def func(x):
     tau = x[1]
     c = x[2]
 
-    #growth rate
-    mu = x[3]
 
     #Change input params
     
