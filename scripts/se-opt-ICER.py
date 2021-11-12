@@ -133,7 +133,7 @@ def func(x):
         ODerr = (((df.OD750-test_data.OD750)/test_data.OD750)**2).mean()
 
     if len(df.Sucrose)==len(test_data.Sucrose):
-        ODerr = np.average((test_data.Sucrose - df.Sucrose) ** 2, axis=0, weights=test_data.Sucrose)
+        SUCerr = np.average((test_data.Sucrose - df.Sucrose) ** 2, axis=0, weights=test_data.Sucrose)
     else:
         SUCerr = (((df.Sucrose-test_data.Sucrose)/test_data.Sucrose)**2).mean()
     return ODerr + SUCerr
