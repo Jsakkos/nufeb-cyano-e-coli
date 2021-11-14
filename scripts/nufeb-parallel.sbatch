@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #SBATCH -J loop
 #SBATCH -A vermaaslab
-#SBATCH --ntasks=72
+#SBATCH --ntasks=144
 #SBATCH --ntasks-per-node=16
 #SBATCH --mem-per-cpu=5g
 #SBATCH -t 10:00
