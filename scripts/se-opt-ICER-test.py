@@ -20,7 +20,7 @@ from skopt.callbacks import CheckpointSaver
 test_data = pd.read_excel('/mnt/home/sakkosjo/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
 
-Nfeval = 1
+
 
 def od_func(x):
     """Exponential fit to IPTG vs OD750 experimental data
@@ -36,7 +36,7 @@ def od_func(x):
 # Smooth OD750 data for fitting
 test_data.loc[:,'OD750'] = od_func(test_data.IPTG)
 
-def recompile(alpha,tau,c):
+def recompile():
     """Recompile NUFEB with new fitting parameters
 
     Args:
@@ -48,11 +48,11 @@ def recompile(alpha,tau,c):
         c2 ([type]): [description]
     """
     #os.chdir('/mnt/home/sakkosjo/NUFEB/')
-    filein = open( f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/templates/fix_bio_kinetics_monodOD.txt' )
+    filein = open( f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/templates/fix_bio_kinetics_monod_final.txt' )
     #read it
     src = Template( filein.read() )
     #do the substitution
-    result = src.safe_substitute({'alpha' : alpha, 'tau' : tau, 'c' : c
+    result = src.safe_substitute({
                                         
                                         })
     with open("/mnt/home/sakkosjo/NUFEB/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
@@ -60,7 +60,7 @@ def recompile(alpha,tau,c):
     #Compile NUFEB
     os.system('/mnt/home/sakkosjo/rapid-compile.sh')
 
-def func(alpha,tau,c):
+def func():
     """Optimization function
 
     Args:
@@ -69,17 +69,10 @@ def func(alpha,tau,c):
     Returns:
         [type]: RMSE
     """
-    global Nfeval
-    #OD750 fitting
-    #alpha = x[0]
-    #tau = x[1]
-    #c = x[2]
 
-
-    #Change input params
     
-    recompile(alpha,tau,c)
-    print(f'alpha: {alpha},tau: {tau},c: {c}')
+    recompile()
+
 
     #Clean old simulations
     os.chdir('/mnt/gs18/scratch/users/sakkosjo')
@@ -111,23 +104,16 @@ def func(alpha,tau,c):
     df.sort_values(by='IPTG',inplace=True)
     df.reset_index(inplace=True)
     #save in progress plot
-    f, ax = plt.subplots()
-
-    ax.set_title('OD750')
-    ax.plot(test_data.IPTG,test_data.OD750,marker='o')
-    ax.plot(df.IPTG,df.OD750)
+    f, ax = plt.subplots(ncols=2)
+    ax[0].set_title('Sucrose')
+    ax[0].plot(test_data.IPTG,test_data.Sucrose,marker='o')
+    ax[0].plot(df.IPTG,df.Sucrose)
+    ax[1].set_title('OD750')
+    ax[1].plot(test_data.IPTG,test_data.OD750,marker='o')
+    ax[1].plot(df.IPTG,df.OD750)
     f.tight_layout()
     f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/se-optOD-final.png')
-    #Compare output with experimental data via RMSE
 
-    Nfeval += 1
-    if len(df.OD750)==len(test_data.OD750):
-        ODerr = np.average((test_data.OD750 - df.OD750) ** 2, axis=0, weights=test_data.OD750)
-    else:
-        ODerr = (((df.OD750-test_data.OD750)/test_data.OD750)**2).mean()
-
-
-    return ODerr
-func(-0.14096531237477777, 0.06278980692474602, 0.10023045545531656)
+func()
 
 
