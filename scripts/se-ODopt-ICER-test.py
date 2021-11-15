@@ -60,7 +60,7 @@ def recompile(alpha,tau,c):
     #Compile NUFEB
     os.system('/mnt/home/sakkosjo/rapid-compile.sh')
 
-def func(x):
+def func(alpha,tau,c):
     """Optimization function
 
     Args:
@@ -71,9 +71,9 @@ def func(x):
     """
     global Nfeval
     #OD750 fitting
-    alpha = x[0]
-    tau = x[1]
-    c = x[2]
+    #alpha = x[0]
+    #tau = x[1]
+    #c = x[2]
 
 
     #Change input params
