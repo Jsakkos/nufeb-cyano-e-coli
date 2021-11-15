@@ -16,6 +16,7 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error 
 from skopt import dump, load
 from skopt.callbacks import CheckpointSaver
+import seaborn as sns
 
 test_data = pd.read_excel('/mnt/home/sakkosjo/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
@@ -79,7 +80,7 @@ def func():
     os.system('nufeb-clean')
     #Seed new simulations
     for iptg in test_data.IPTG:
-        text = f'nufeb-seed --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700 --sucR {iptg} --mucya 1.89e-5'
+        text = f'nufeb-seed --n 5 --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700 --sucR {iptg} --mucya 1.89e-5'
         os.system(text)
     #Run new simulations
     os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
@@ -107,10 +108,12 @@ def func():
     f, ax = plt.subplots(ncols=2)
     ax[0].set_title('Sucrose')
     ax[0].plot(test_data.IPTG,test_data.Sucrose,marker='o')
-    ax[0].plot(df.IPTG,df.Sucrose)
+    #ax[0].plot(df.IPTG,df.Sucrose)
+    sns.lineplot(x='IPTG',y='Sucrose',ax=ax[0])
     ax[1].set_title('OD750')
     ax[1].plot(test_data.IPTG,test_data.OD750,marker='o')
-    ax[1].plot(df.IPTG,df.OD750)
+    sns.lineplot(x='IPTG',y='OD750',ax=ax[1])
+    #ax[1].plot(df.IPTG,df.OD750)
     f.tight_layout()
     f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/se-optOD-final.png')
 
