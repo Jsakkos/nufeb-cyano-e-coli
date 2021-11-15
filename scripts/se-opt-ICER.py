@@ -16,6 +16,7 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error 
 from skopt import dump, load
 from skopt.callbacks import CheckpointSaver
+import seaborn as sns
 
 test_data = pd.read_excel('/mnt/home/sakkosjo/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
@@ -79,19 +80,19 @@ def func(x):
     tau2 = x[4]
     c2 = x[5]
     #growth rate
-    mu = x[6]
+  
 
     #Change input params
     
     recompile(alpha,tau,c,alpha2,tau2,c2)
-    print(f'alpha: {alpha},tau: {tau},c: {c},alpha2: {alpha2},tau2: {tau2},c2: {c2}, mu: {mu}')
+    print(f'alpha: {alpha},tau: {tau},c: {c},alpha2: {alpha2},tau2: {tau2},c2: {c2}')
 
     #Clean old simulations
     os.chdir('/mnt/gs18/scratch/users/sakkosjo')
     os.system('nufeb-clean')
     #Seed new simulations
     for iptg in test_data.IPTG:
-        text = f'nufeb-seed --cells 10,0 --t 8700 --mucya {mu} --sucR {iptg}'
+        text = f'nufeb-seed --n 3 --cells 10,0 --t 8700  --mucya 1.89e-5 --sucR {iptg}'
         os.system(text)
     #Run new simulations
     os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
@@ -101,7 +102,7 @@ def func(x):
     #Extract output
 
     data = [utils.get_data(directory=str(x)) for x in folders]
-    Volume = 1e-4*1e-4*1e-5 #m^3
+    Volume = np.prod(data[0].metadata['Dimensions'])
     CellNum2OD = Volume*1e6/0.3e-8
     SucroseMW = 342.3
     dfs = []
@@ -118,33 +119,39 @@ def func(x):
     f, ax = plt.subplots(ncols=2)
     ax[0].set_title('Sucrose')
     ax[0].plot(test_data.IPTG,test_data.Sucrose,marker='o')
-    ax[0].plot(df.IPTG,df.Sucrose)
+
+    sns.lineplot(x='IPTG',y='Sucrose',ax=ax[0],data=df)
     ax[1].set_title('OD750')
     ax[1].plot(test_data.IPTG,test_data.OD750,marker='o')
-    ax[1].plot(df.IPTG,df.OD750)
+    sns.lineplot(x='IPTG',y='OD750',ax=ax[1],data=df)
     f.tight_layout()
-    f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/se-opt{Nfeval}.png')
+    f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/se-opt-{Nfeval}.png')
+    plt.close()
     #Compare output with experimental data via RMSE
 
     Nfeval += 1
-    if len(df.OD750)==len(test_data.OD750):
-        ODerr = np.average((test_data.OD750 - df.OD750) ** 2, axis=0, weights=test_data.OD750)
-    else:
-        ODerr = (((df.OD750-test_data.OD750)/test_data.OD750)**2).mean()
+    ODerr=0
+    SUCerr=0
+    for i in range(3):
+        temp = df.iloc[i::5,:].reset_index()
+        if len(temp.OD750)==len(test_data.OD750):
+            ODerr = np.average((test_data.OD750 - temp.OD750) ** 2, axis=0, weights=test_data.OD750)+ODerr
+        else:
+            ODerr = (((temp.OD750-test_data.OD750)/test_data.OD750)**2).mean()+ODerr
 
-    if len(df.Sucrose)==len(test_data.Sucrose):
-        SUCerr = np.average((test_data.Sucrose - df.Sucrose) ** 2, axis=0, weights=test_data.Sucrose)
-    else:
-        SUCerr = (((df.Sucrose-test_data.Sucrose)/test_data.Sucrose)**2).mean()
+        if len(temp.Sucrose)==len(test_data.Sucrose):
+            SUCerr = np.average((test_data.Sucrose - temp.Sucrose) ** 2, axis=0, weights=test_data.Sucrose)+SUCerr
+        else:
+            SUCerr = (((temp.Sucrose-test_data.Sucrose)/test_data.Sucrose)**2).mean()+SUCerr
     return ODerr + SUCerr
 #return  + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).mean()
 #return mean_squared_error(df.OD750,test_data.OD750,sample_weight=test_data.OD750) + mean_squared_error(df.Sucrose,test_data.Sucrose, sample_weight=test_data.Sucrose)
 
 alpha_min = float('-5e-1')
-alpha_max = float('0')
+alpha_max = float('-1e-3')
 tau_min = float('1e-3')
 tau_max = float('1e-1')
-c_min = float('0')
+c_min = float('1e-3')
 c_max = float('5e-1')
 alpha2_min = float('-1e1')
 alpha2_max = float('0')
@@ -153,15 +160,13 @@ tau2_max = float('1e-1')
 c2_min = float('0')
 c2_max = float('1e1')
 
-mu_min = float('1e-6')
-mu_max = float('5e-5')
 
-bounds = [(alpha_min,alpha_max),(tau_min,tau_max),(c_min,c_max),(alpha2_min,alpha2_max),(tau2_min,tau2_max),(c2_min,c2_max),(mu_min,mu_max)]#,
+bounds = [(alpha_min,alpha_max),(tau_min,tau_max),(c_min,c_max),(alpha2_min,alpha2_max),(tau2_min,tau2_max),(c2_min,c2_max)]#,
 
 
 
 checkpoint_saver = CheckpointSaver('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-icer.pkl', compress=9)
-n_calls = 200
+n_calls = 500
 
 res = gp_minimize(func, bounds, n_calls=n_calls,verbose=True,
                   callback=[checkpoint_saver])
