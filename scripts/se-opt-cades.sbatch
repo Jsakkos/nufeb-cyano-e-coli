@@ -12,4 +12,4 @@
 #SBATCH --mail-user=sakkosjo@msu.edu
 
 set -x
-python3 home/12x/nufeb-cyano-e-coli/scripts/se-ODopt-CADES.py > nufeb.log
+python3 /home/12x/nufeb-cyano-e-coli/scripts/se-ODopt-CADES.py > nufeb.log
