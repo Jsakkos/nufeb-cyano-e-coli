@@ -9,6 +9,6 @@
 #SBATCH --error=nufeb.err
 #SBATCH --mail-type=END
 #SBATCH --mail-user=sakkosjo@msu.edu
-#SBATCH -C NOAUTO:intel16|intel18
+#SBATCH -C '[intel14|intel16|intel18]'
 set -x
 python3 /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/se-ODopt-ICER.py > nufeb.log
