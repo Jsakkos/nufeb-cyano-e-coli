@@ -116,6 +116,7 @@ def func():
     #ax[1].plot(df.IPTG,df.OD750)
     f.tight_layout()
     f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/se-optOD-final.png')
+    plt.close()
 
 func()
 
