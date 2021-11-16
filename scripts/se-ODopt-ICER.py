@@ -115,7 +115,7 @@ def func(x):
 
     ax.set_title('OD750')
     ax.plot(test_data.IPTG,test_data.OD750,marker='o')
-    sns.lineplot(x='IPTG',y='OD750',ax=ax[1],data=df)
+    sns.lineplot(x='IPTG',y='OD750',ax=ax,data=df)
     ax.set_xlabel('IPTG (mM)')
     ax.set_ylabel('OD750')
     f.tight_layout()
