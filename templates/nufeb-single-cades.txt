@@ -2,7 +2,7 @@
 #SBATCH -J nufeb
 #SBATCH -A cnms
 #SBATCH -p burst
-#SBATCH --ntasks=32
+#SBATCH --nodes 1
 #SBATCH --ntasks-per-node=32
 #SBATCH --mem-per-cpu=5g
 #SBATCH -t 20:00

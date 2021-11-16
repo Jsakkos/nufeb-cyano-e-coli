@@ -8,6 +8,7 @@
 #SBATCH -t 1:00:00
 #SBATCH --output=test.out
 #SBATCH --error=test.err
+#SBATCH -W
 module purge
 module load PE-gnu/3.0
 module load parallel
