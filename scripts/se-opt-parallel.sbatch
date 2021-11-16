@@ -10,4 +10,4 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-user=sakkosjo@msu.edu
 
-python3 /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/se-opt-ICER.py
+python3 /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/se-ODopt-ICER.py
