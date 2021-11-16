@@ -16,7 +16,7 @@ from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error 
 from skopt import dump, load
 from skopt.callbacks import CheckpointSaver
-
+import seaborn as sns
 test_data = pd.read_excel('/mnt/home/sakkosjo/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
 
@@ -86,7 +86,7 @@ def func(x):
     os.system('nufeb-clean')
     #Seed new simulations
     for iptg in test_data.IPTG:
-        text = f'nufeb-seed --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700 --sucR {iptg} --mucya 1.89e-5'
+        text = f'nufeb-seed --n 3 --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700 --sucR {iptg} --mucya 1.89e-5'
         os.system(text)
     #Run new simulations
     os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
@@ -115,17 +115,23 @@ def func(x):
 
     ax.set_title('OD750')
     ax.plot(test_data.IPTG,test_data.OD750,marker='o')
-    ax.plot(df.IPTG,df.OD750)
+    sns.lineplot(x='IPTG',y='OD750',ax=ax[1],data=df)
+    ax.set_xlabel('IPTG (mM)')
+    ax.set_ylabel('OD750')
     f.tight_layout()
+
     f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/se-optOD-{Nfeval}.png')
+    plt.close()
     #Compare output with experimental data via RMSE
 
     Nfeval += 1
-    if len(df.OD750)==len(test_data.OD750):
-        ODerr = np.average((test_data.OD750 - df.OD750) ** 2, axis=0, weights=test_data.OD750)
-    else:
-        ODerr = (((df.OD750-test_data.OD750)/test_data.OD750)**2).mean()
-
+    ODerr=0
+    for i in range(3):
+        temp = df.iloc[i::5,:].reset_index()
+        if len(temp.OD750)==len(test_data.OD750):
+            ODerr = np.average((test_data.OD750 - temp.OD750) ** 2, axis=0, weights=test_data.OD750)+ODerr
+        else:
+            ODerr = (((temp.OD750-test_data.OD750)/test_data.OD750)**2).mean()+ODerr
 
     return ODerr
 #return  + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).mean()
