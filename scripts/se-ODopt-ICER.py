@@ -94,9 +94,24 @@ def func(x):
     folders = [path for path in BASE_DIR.iterdir() if path.is_dir()]
 
     #Extract output
-
-    data = [utils.get_data(directory=str(x)) for x in folders]
-    Volume = np.prod(data[0].metadata['Dimensions'])
+    try:
+        data = [utils.get_data(directory=str(x)) for x in folders]
+        Volume = np.prod(data[0].metadata['Dimensions'])
+    except:
+        print('Something went wrong. Rerunning simulations')
+        #Clean old simulations
+        os.chdir('/mnt/gs18/scratch/users/sakkosjo')
+        os.system('nufeb-clean')
+        #Seed new simulations
+        for iptg in test_data.IPTG:
+            text = f'nufeb-seed --n 3 --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700 --sucR {iptg} --mucya 1.89e-5'
+            os.system(text)
+        #Run new simulations
+        os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
+        BASE_DIR = Path(f'runs/')
+        folders = [path for path in BASE_DIR.iterdir() if path.is_dir()]
+        data = [utils.get_data(directory=str(x)) for x in folders]
+        Volume = np.prod(data[0].metadata['Dimensions'])
     #Volume = 1e-4*1e-4*1e-5 #m^3
     CellNum2OD = Volume*1e6/0.3e-8
     SucroseMW = 342.3
@@ -126,12 +141,12 @@ def func(x):
 
     Nfeval += 1
     ODerr=0
-    for i in range(3):
-        temp = df.iloc[i::5,:].reset_index()
-        if len(temp.OD750)==len(test_data.OD750):
-            ODerr = np.average((test_data.OD750 - temp.OD750) ** 2, axis=0, weights=test_data.OD750)+ODerr
-        else:
-            ODerr = (((temp.OD750-test_data.OD750)/test_data.OD750)**2).mean()+ODerr
+
+    temp = df.groupby('IPTG').mean()
+    if len(temp.OD750)==len(test_data.OD750):
+        ODerr = np.average((test_data.OD750 - temp.OD750) ** 2, axis=0, weights=test_data.OD750)+ODerr
+    else:
+        ODerr = (((temp.OD750-test_data.OD750)/test_data.OD750)**2).mean()+ODerr
 
     return ODerr
 #return  + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).mean()
