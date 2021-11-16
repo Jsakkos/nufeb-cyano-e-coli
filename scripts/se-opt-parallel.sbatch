@@ -4,7 +4,7 @@
 #SBATCH --nodes 1
 #SBATCH --ntasks=8
 #SBATCH --mem=10g
-#SBATCH -t 10:00:00
+#SBATCH -t 2-00:00:00
 #SBATCH --output=nufeb.out
 #SBATCH --error=nufeb.err
 #SBATCH --mail-type=END

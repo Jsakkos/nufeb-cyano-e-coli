@@ -173,7 +173,7 @@ y0 = res.func_vals
 #base_estimator = res.specs['args']['base_estimator']
 random_state = res.random_state
 res = gp_minimize(func, bounds, x0=x0,y0=y0,
-        n_calls=n_calls,n_initial_points=20,
+        n_calls=n_calls,n_initial_points=20,n_random_starts=3,
         verbose=True,random_state=random_state,
                   callback=[checkpoint_saver])
 
