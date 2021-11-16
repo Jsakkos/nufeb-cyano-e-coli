@@ -20,7 +20,7 @@ import seaborn as sns
 test_data = pd.read_excel('/mnt/home/sakkosjo/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
 
-Nfeval = 1
+
 
 def od_func(x):
     """Exponential fit to IPTG vs OD750 experimental data
@@ -152,6 +152,7 @@ bounds = [(alpha_min,alpha_max),(tau_min,tau_max),(c_min,c_max)]#,
 checkpoint_saver = CheckpointSaver('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl', compress=9)
 n_calls = 200
 res = load('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl')
+Nfeval = len(res.x_iters)+1
 x0 = res.x_iters
 y0 = res.func_vals
 #base_estimator = res.specs['args']['base_estimator']
