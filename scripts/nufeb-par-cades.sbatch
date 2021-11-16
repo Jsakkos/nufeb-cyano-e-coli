@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #SBATCH -J loop
 #SBATCH -A cnms
-#SBATCH -p '[burst|batch]'
+#SBATCH -p burst
 #SBATCH --nodes 3
 #SBATCH --ntasks-per-node=32
 #SBATCH --mem=50g
