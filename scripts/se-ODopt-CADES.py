@@ -17,7 +17,7 @@ from sklearn.metrics import mean_squared_error
 from skopt import dump, load
 from skopt.callbacks import CheckpointSaver
 import seaborn as sns
-test_data = pd.read_excel('/mnt/home/sakkosjo/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
+test_data = pd.read_excel('/home/12x/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
 
 
@@ -48,17 +48,17 @@ def recompile(alpha,tau,c):
         c2 ([type]): [description]
     """
     #os.chdir('/mnt/home/sakkosjo/NUFEB/')
-    filein = open( f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/templates/fix_bio_kinetics_monodOD.txt' )
+    filein = open( f'/home/12x/nufeb-cyano-e-coli/templates/fix_bio_kinetics_monodOD.txt' )
     #read it
     src = Template( filein.read() )
     #do the substitution
     result = src.safe_substitute({'alpha' : alpha, 'tau' : tau, 'c' : c
                                         
                                         })
-    with open("/mnt/home/sakkosjo/NUFEB/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
+    with open("/lustre/or-scratch/cades-cnms/12x/NUFEB/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
        f.writelines(result)
     #Compile NUFEB
-    os.system('/mnt/home/sakkosjo/rapid-compile.sh')
+    os.system('/home/12x/rapid-compile2.sh')
 
 def func(x):
     """Optimization function
@@ -82,36 +82,47 @@ def func(x):
     print(f'alpha: {alpha},tau: {tau},c: {c}')
 
     #Clean old simulations
-    os.chdir('/mnt/gs18/scratch/users/sakkosjo')
+    os.chdir('/lustre/or-scratch/cades-cnms/12x')
     os.system('nufeb-clean')
     #Seed new simulations
     for iptg in test_data.IPTG:
         text = f'nufeb-seed --n 3 --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700 --sucR {iptg} --mucya 1.89e-5'
         os.system(text)
     #Run new simulations
-    os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
+    os.system('sbatch /home/12x/nufeb-cyano-e-coli/scripts/nufeb-par-cades.sbatch')
     BASE_DIR = Path(f'runs/')
     folders = [path for path in BASE_DIR.iterdir() if path.is_dir()]
 
+    for x in folders:
+        if Path(x / 'trajectory.h5').exists():
+            continue
+        else:
+            print(f'No file in {x}. Resubmitting job.')
+            filein = open( f'/home/12x/nufeb-cyano-e-coli/templates/nufeb-single-cades.txt' )
+            #read it
+            src = Template( filein.read() )
+            #do the substitution
+            result = src.safe_substitute({'DIR' : x})
+            with open("/home/12x/nufeb-single-cades.sbatch","w") as f:
+                f.writelines(result)
+            os.system('sbatch /home/12x/nufeb-single-cades.sbatch')
+            if Path(x / 'trajectory.h5').exists():
+                print('File generated')
+            else:
+                print(f'No file in {x}. Resubmitting job.')
+                filein = open( f'/home/12x/nufeb-cyano-e-coli/templates/nufeb-single-cades.txt' )
+                #read it
+                src = Template( filein.read() )
+                #do the substitution
+                result = src.safe_substitute({'DIR' : x})
+                with open("/home/12x/nufeb-single.sbatch","w") as f:
+                    f.writelines(result)
+                os.system('sbatch /home/12x/nufeb-single-cades.sbatch')
     #Extract output
-    try:
-        data = [utils.get_data(directory=str(x)) for x in folders]
-        Volume = np.prod(data[0].metadata['Dimensions'])
-    except:
-        print('Something went wrong. Rerunning simulations')
-        #Clean old simulations
-        os.chdir('/mnt/gs18/scratch/users/sakkosjo')
-        os.system('nufeb-clean')
-        #Seed new simulations
-        for iptg in test_data.IPTG:
-            text = f'nufeb-seed --n 3 --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700 --sucR {iptg} --mucya 1.89e-5'
-            os.system(text)
-        #Run new simulations
-        os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
-        BASE_DIR = Path(f'runs/')
-        folders = [path for path in BASE_DIR.iterdir() if path.is_dir()]
-        data = [utils.get_data(directory=str(x)) for x in folders]
-        Volume = np.prod(data[0].metadata['Dimensions'])
+
+    data = [utils.get_data(directory=str(x)) for x in folders]
+    Volume = np.prod(data[0].metadata['Dimensions'])
+
     #Volume = 1e-4*1e-4*1e-5 #m^3
     CellNum2OD = Volume*1e6/0.3e-8
     SucroseMW = 342.3
@@ -135,7 +146,7 @@ def func(x):
     ax.set_ylabel('OD750')
     f.tight_layout()
 
-    f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/cades/se-optOD-{Nfeval}.png')
+    f.savefig(f'/home/12x/nufeb-cyano-e-coli/simulation-data/cades/se-optOD-{Nfeval}.png')
     plt.close()
     #Compare output with experimental data via RMSE
 
@@ -149,8 +160,6 @@ def func(x):
         ODerr = (((temp.OD750-test_data.OD750)/test_data.OD750)**2).mean()+ODerr
 
     return ODerr
-#return  + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).mean()
-#return mean_squared_error(df.OD750,test_data.OD750,sample_weight=test_data.OD750) + mean_squared_error(df.Sucrose,test_data.Sucrose, sample_weight=test_data.Sucrose)
 
 alpha_min = float('-5e-1')
 alpha_max = float('-1e-2')
@@ -162,20 +171,29 @@ c_max = float('5e-1')
 
 bounds = [(alpha_min,alpha_max),(tau_min,tau_max),(c_min,c_max)]#,
 
+if Path('/home/12x/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-cades.pkl').exists():
+    res = load('/home/12x/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-cades.pkl')
+    checkpoint_saver = CheckpointSaver('/home/12x/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-cades.pkl', compress=9)
+    n_calls = 200
 
-res = load('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl')
-checkpoint_saver = CheckpointSaver('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl', compress=9)
-n_calls = 200
+    Nfeval = len(res.x_iters)+1
+    x0 = res.x_iters
+    y0 = res.func_vals
+    #base_estimator = res.specs['args']['base_estimator']
+    random_state = res.random_state
+    res = gp_minimize(func, bounds, x0=x0,y0=y0,
+            n_calls=n_calls,n_initial_points=20,n_random_starts=3,
+            verbose=True,random_state=random_state,
+                    callback=[checkpoint_saver])
+else:
+    checkpoint_saver = CheckpointSaver('/home/12x/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-cades.pkl', compress=9)
+    n_calls = 200
 
-Nfeval = len(res.x_iters)+1
-x0 = res.x_iters
-y0 = res.func_vals
-#base_estimator = res.specs['args']['base_estimator']
-random_state = res.random_state
-res = gp_minimize(func, bounds, x0=x0,y0=y0,
-        n_calls=n_calls,n_initial_points=20,n_random_starts=3,
-        verbose=True,random_state=random_state,
-                  callback=[checkpoint_saver])
+    Nfeval = 1
+
+    res = gp_minimize(func, bounds,
+            n_calls=n_calls,n_initial_points=20,n_random_starts=3,
+            verbose=True, callback=[checkpoint_saver])
 
 
 

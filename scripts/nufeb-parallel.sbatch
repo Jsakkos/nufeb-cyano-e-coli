@@ -13,5 +13,5 @@ module load parallel
 
 export LAMMPS=~/NUFEB/lammps/src/lmp_png
 cd /mnt/gs18/scratch/users/sakkosjo
-srun="srun -n16 --mpi=pmi2 --time 10:00" #-N1 
+srun="srun -N1 -n16 --mpi=pmi2 --time 10:00" #-N1 
 parallel -j $SLURM_NTASKS "cd {1} && $srun $LAMMPS -in *.lammps > nufeb.log" ::: runs/*/
