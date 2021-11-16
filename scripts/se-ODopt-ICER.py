@@ -163,10 +163,10 @@ c_max = float('5e-1')
 bounds = [(alpha_min,alpha_max),(tau_min,tau_max),(c_min,c_max)]#,
 
 
-
+res = load('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl')
 checkpoint_saver = CheckpointSaver('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl', compress=9)
 n_calls = 200
-res = load('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl')
+
 Nfeval = len(res.x_iters)+1
 x0 = res.x_iters
 y0 = res.func_vals
