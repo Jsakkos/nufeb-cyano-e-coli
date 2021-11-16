@@ -93,36 +93,25 @@ def func(x):
     BASE_DIR = Path(f'runs/')
     folders = [path for path in BASE_DIR.iterdir() if path.is_dir()]
 
-    for x in folders:
-        if Path(x / 'trajectory.h5').exists():
-            continue
-        else:
-            print(f'No file in {x}. Resubmitting job.')
-            filein = open( f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/templates/nufeb-single.txt' )
-            #read it
-            src = Template( filein.read() )
-            #do the substitution
-            result = src.safe_substitute({'DIR' : x})
-            with open("/mnt/home/sakkosjo/nufeb-single.sbatch","w") as f:
-                f.writelines(result)
-            os.system('sbatch /mnt/home/sakkosjo/nufeb-single.sbatch')
-            if Path(x / 'trajectory.h5').exists():
-                print('File generated')
-            else:
-                print(f'No file in {x}. Resubmitting job.')
-                filein = open( f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/templates/nufeb-single.txt' )
-                #read it
-                src = Template( filein.read() )
-                #do the substitution
-                result = src.safe_substitute({'DIR' : x})
-                with open("/mnt/home/sakkosjo/nufeb-single.sbatch","w") as f:
-                    f.writelines(result)
-                os.system('sbatch /mnt/home/sakkosjo/nufeb-single.sbatch')
     #Extract output
-
-    data = [utils.get_data(directory=str(x)) for x in folders]
-    Volume = np.prod(data[0].metadata['Dimensions'])
-
+    try:
+        data = [utils.get_data(directory=str(x)) for x in folders]
+        Volume = np.prod(data[0].metadata['Dimensions'])
+    except:
+        print('Something went wrong. Rerunning simulations')
+        #Clean old simulations
+        os.chdir('/mnt/gs18/scratch/users/sakkosjo')
+        os.system('nufeb-clean')
+        #Seed new simulations
+        for iptg in test_data.IPTG:
+            text = f'nufeb-seed --n 3 --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700 --sucR {iptg} --mucya 1.89e-5'
+            os.system(text)
+        #Run new simulations
+        os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
+        BASE_DIR = Path(f'runs/')
+        folders = [path for path in BASE_DIR.iterdir() if path.is_dir()]
+        data = [utils.get_data(directory=str(x)) for x in folders]
+        Volume = np.prod(data[0].metadata['Dimensions'])
     #Volume = 1e-4*1e-4*1e-5 #m^3
     CellNum2OD = Volume*1e6/0.3e-8
     SucroseMW = 342.3
@@ -146,7 +135,7 @@ def func(x):
     ax.set_ylabel('OD750')
     f.tight_layout()
 
-    f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/se-optOD-{Nfeval}.png')
+    f.savefig(f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/simulation-data/cades/se-optOD-{Nfeval}.png')
     plt.close()
     #Compare output with experimental data via RMSE
 
