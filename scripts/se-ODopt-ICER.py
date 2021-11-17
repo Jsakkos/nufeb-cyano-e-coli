@@ -174,19 +174,32 @@ c_max = float('5e-1')
 bounds = [(alpha_min,alpha_max),(tau_min,tau_max),(c_min,c_max)]#,
 
 
-res = load('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl')
-checkpoint_saver = CheckpointSaver('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl', compress=9)
+
 n_calls = 200
 
-Nfeval = len(res.x_iters)+1
-x0 = res.x_iters
-y0 = res.func_vals
-#base_estimator = res.specs['args']['base_estimator']
-random_state = res.random_state
-res = gp_minimize(func, bounds, x0=x0,y0=y0,
-        n_calls=n_calls,n_initial_points=20,n_random_starts=3,
-        verbose=True,random_state=random_state,
-                  callback=[checkpoint_saver])
+if Path('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl').exists():
+    res = load('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl')
+    checkpoint_saver = CheckpointSaver('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl', compress=9)
+    n_calls = 200
+
+    Nfeval = len(res.x_iters)+1
+    x0 = res.x_iters
+    y0 = res.func_vals
+    #base_estimator = res.specs['args']['base_estimator']
+    random_state = res.random_state
+    res = gp_minimize(func, bounds, x0=x0,y0=y0,
+            n_calls=n_calls,n_initial_points=20,n_random_starts=3,
+            verbose=True,random_state=random_state,
+                    callback=[checkpoint_saver])
+else:
+    checkpoint_saver = CheckpointSaver('/mnt/home/sakkosjo/nufeb-cyano-e-coli/checkpoints/checkpoint-se-od-icer.pkl', compress=9)
+    n_calls = 200
+
+    Nfeval = 1
+
+    res = gp_minimize(func, bounds,
+            n_calls=n_calls,n_initial_points=20,n_random_starts=3,
+            verbose=True, callback=[checkpoint_saver])
 
 
 
