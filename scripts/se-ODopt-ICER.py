@@ -153,7 +153,7 @@ def func(x):
     Nfeval += 1
     ODerr=0
 
-    temp = df.groupby('IPTG').mean()
+    temp = df.groupby('IPTG').mean().reset_index()
     if len(temp.OD750)==len(test_data.OD750):
         ODerr = np.average((test_data.OD750 - temp.OD750) ** 2, axis=0, weights=test_data.OD750)+ODerr
     else:
