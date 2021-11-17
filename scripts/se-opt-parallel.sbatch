@@ -2,7 +2,7 @@
 #SBATCH -J se-optimization
 #SBATCH -A vermaaslab
 #SBATCH --nodes 1
-#SBATCH --ntasks=8
+#SBATCH --ntasks=1
 #SBATCH --mem=10g
 #SBATCH -t 2-00:00:00
 #SBATCH --output=nufeb.out
