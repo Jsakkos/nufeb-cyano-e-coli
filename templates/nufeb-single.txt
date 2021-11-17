@@ -11,4 +11,4 @@
 
 export LAMMPS=~/NUFEB/lammps/src/lmp_png
 cd ${DIR}
-srun -N1 -n16 --mpi=pmi2 --time 10:00 $LAMMPS -in *.lammps > nufeb.log
+srun -N1 -n8 --mpi=pmi2 --time 10:00 $LAMMPS -in *.lammps > nufeb.log
