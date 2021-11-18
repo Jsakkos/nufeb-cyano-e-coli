@@ -84,7 +84,6 @@ fix 11 all halt 1000 v_light <= 1e-19
 ##############Simulation Output##############
 ${lammps}
 ${vtk}
-${grid}
 dump    du3 all bio 100 ntypes biomass avg_con
 ${hdf5}
 thermo_style    custom step cpu atoms c_myNtypes[*] c_myMass[*] c_myCon[*]

@@ -113,8 +113,8 @@ def main(args):
     SucMW = 342.3
     TEMPLATES_DIR = (Path(__file__).parent) / 'templates'
     # check for runs folder
-    if not os.path.isdir('runs'):
-        os.mkdir('runs')
+    if not os.path.isdir('../runs'):
+        os.mkdir('../runs')
     today = str(date.today())
     spacing = np.logspace(-4,-6,num=int(args.num))
     for n in range(len(spacing)):
@@ -133,7 +133,7 @@ def main(args):
         cyDiv = f'fix d1 CYANO divide 100 v_EPSdens v_divDia1 {random.randint(1,1e6)}'
         ecwDiv = f'fix d2 ECW divide 100 v_EPSdens v_divDia2 {random.randint(1,1e6)}'
         cell_types = ['cyano','ecw']
-        RUN_DIR = Path(f'/../runs/Run_{n_cyanos}_{n_ecw}_{SucPct}_{args.reps}_{today}_{random.randint(1,1e6)}')
+        RUN_DIR = Path(f'../runs/Run_{n_cyanos}_{n_ecw}_{SucPct}_{args.reps}_{today}_{random.randint(1,1e6)}')
         if not os.path.isdir(RUN_DIR):
             os.mkdir(RUN_DIR)
 
