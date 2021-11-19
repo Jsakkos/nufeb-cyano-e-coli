@@ -151,7 +151,8 @@ def main(args):
                 'ybc' : {'sub' : 'nn','o2' : 'nn', 'suc' : 'nn', 'co2' : 'nn'},
                 'zbc' : {'sub' : 'nn','o2' : 'nd', 'suc' : 'nn', 'co2' : 'nd'}},
                 'Diff_c' : {'sub' : 0,'o2' : 2.30e-9, 'suc' : 5.2e-10,'co2' : 1.9e-09},
-                'Dimensions' : [1e-3,1e-3,1e-4],'SucRatio' : SucRatio,'Replicates' : int(args.reps)
+                'Dimensions' : [1e-3,1e-3,1e-4],'SucRatio' : SucRatio,'Replicates' : int(args.reps),
+                'Spacing': spacing[n]
 
                 }
 
