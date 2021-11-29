@@ -7,7 +7,7 @@
 #SBATCH -t 10:00:00 
 #SBATCH --output=fig4.out 
 #SBATCH --error=fig4.err 
-
+module load parallel
 export LAMMPS=~/NUFEB/lammps/src/lmp_png
 cd /mnt/gs18/scratch/users/sakkosjo
 nufeb-clean
