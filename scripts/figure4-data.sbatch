@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH -J fig4
-#SBATCH -A vermaaslab
+##SBATCH -A vermaaslab
 #SBATCH --ntasks=144
 #SBATCH --ntasks-per-node=16
 #SBATCH --mem-per-cpu=2g
