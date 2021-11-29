@@ -3,14 +3,14 @@
 #SBATCH -A vermaaslab
 #SBATCH --ntasks=144
 #SBATCH --ntasks-per-node=16
-#SBATCH --mem-per-cpu=5g
+#SBATCH --mem-per-cpu=2g
 #SBATCH -t 10:00:00 
 #SBATCH --output=fig4.out 
 #SBATCH --error=fig4.err 
 
 export LAMMPS=~/NUFEB/lammps/src/lmp_png
 cd /mnt/gs18/scratch/users/sakkosjo
-
+nufeb-clean
 #make NUFEB simulations for population stability runs
 mkdir population-stability
 cd population-stability
