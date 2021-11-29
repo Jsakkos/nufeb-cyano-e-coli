@@ -25,6 +25,7 @@ nufeb-seed --cells 75,25 --sucR ${i}
 nufeb-seed --cells 25,75 --sucR ${i}
 
 done
+parallel -j $SLURM_NTASKS "cd {1} && $srun $LAMMPS -in *.lammps > nufeb.log" ::: runs/*/
 cd ..
 
 mkdir sucrose
@@ -34,6 +35,7 @@ for i in 0.001 0.00215443 0.00464159 0.01 0.02154435 0.04641589 0.1 0.21544347 0
 do
 nufeb-seed --n 5 --cells 50,50 --sucR ${i}
 done
+parallel -j $SLURM_NTASKS "cd {1} && $srun $LAMMPS -in *.lammps > nufeb.log" ::: runs/*/
 cd ..
 
 
@@ -47,9 +49,9 @@ do
                 nufeb-seed --n 5 --sucR ${j}  --muecw ${i}
         done
 done
+parallel -j $SLURM_NTASKS "cd {1} && $srun $LAMMPS -in *.lammps > nufeb.log" ::: runs/*/
 cd ..
 
 
-srun="srun -N1 -n16 --mpi=pmi2 --time 20:00" #-N1 
-parallel -j $SLURM_NTASKS "cd {1} && $srun $LAMMPS -in *.lammps > nufeb.log" ::: runs/*/
+
 
