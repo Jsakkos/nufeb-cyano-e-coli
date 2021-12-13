@@ -68,7 +68,7 @@ def parse_args(args):
         help='S. elongatus cell density')  
     parser.add_argument('--ksuc',dest='ksuc',action='store',default=3.6,type=float,
         help='E. coli W Ksuc')  
-    parser.add_argument('--maintecw',dest='maint_ecw',action='store',default=9.50e-7,type=float,
+    parser.add_argument('--maintecw',dest='maint_ecw',action='store',default=0,type=float,
         help='E. coli W maintenance cost')  
 
     parser.add_argument('--vtk',dest='vtk',action='store',default=False,help='Output VTK files')
