@@ -174,9 +174,9 @@ def main(args):
         y_cya = 1e-3/(len(spacing)+1)
         y_ecw = y_cya+spacing[n]
         if x_cya < 1e-3 and y_cya < 1e-3 and y_ecw < 1e-3:
-            L.append(f'     {j} 1 1.39e-06  370 {x_cya} {y_cya} 5e-05 1.39e-06 \n')
+            L.append(f'     {j} 1 1.39e-06  370 {x_cya:.2e} {y_cya:.2e} 5e-05 1.39e-06 \n')
             j += 1
-            L.append(f'     {j} 2 1.05e-06  230 {x_cya} {y_ecw} 5e-05 1.05e-06 \n')
+            L.append(f'     {j} 2 1.05e-06  230 {x_cya:.2e} {y_ecw:.2e} 5e-05 1.05e-06 \n')
             j += 1
         else:
             print('cells out of bounds')
