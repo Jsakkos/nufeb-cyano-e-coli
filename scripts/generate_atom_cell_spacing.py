@@ -26,7 +26,7 @@ def parse_args(args):
     # arguments to modify the conditions of the simulation seeding
     parser = argparse.ArgumentParser(description='Create atom definition files')
     parser.add_argument('--n', dest='num', action='store',
-                    default=10,
+                    default=50,
                     help='Number of spacing pairs')
     parser.add_argument('--r', dest='reps', action='store',
                     default=1,
@@ -78,7 +78,7 @@ def parse_args(args):
     parser.add_argument('--spmin',dest='spmin',action='store',default=-6,type=float,
         help='Min spacing (log, meters)')  
 
-    parser.add_argument('--vtk',dest='vtk',action='store',default=False,help='Output VTK files')
+    parser.add_argument('--vtk',dest='vtk',action='store',default=True,help='Output VTK files')
     parser.add_argument('--h5',dest='hdf5',action='store',default=True,help='Output HDF5 files')
     parser.add_argument('--lammps',dest='lammps',action='store',default=False,help='Output lammps files')
     parser.add_argument(
@@ -156,7 +156,7 @@ def main(args):
             'ybc' : {'sub' : 'nn','o2' : 'nn', 'suc' : 'nn', 'co2' : 'nn'},
             'zbc' : {'sub' : 'nn','o2' : 'nd', 'suc' : 'nn', 'co2' : 'nd'}},
             'Diff_c' : {'sub' : 0,'o2' : 2.30e-9, 'suc' : 5.2e-10,'co2' : 1.9e-09},
-            'Dimensions' : [1e-3,1e-3,1e-4],'SucRatio' : SucRatio,'Replicates' : 1,
+            'Dimensions' : [1e-3,1e-3,1e-4],'SucRatio' : SucRatio,'IPTG':IPTG,'Replicates' : 1,
 
             }
 
@@ -177,7 +177,7 @@ def main(args):
         if x_cya < 1e-3 and y_cya < 1e-3 and y_ecw < 1e-3:
             L.append(f'     {j} 1 1.39e-06  370 {x_cya:.2e} {y_cya:.2e} {z:.2e} 1.39e-06 \n')
             j += 1
-            L.append(f'     {j} 2 1.05e-06  230 {x_cya:.2e} {y_ecw:.2e} {z:.2e} 1.05e-06 \n')
+            L.append(f'     {j} 2 1.00e-06  230 {x_cya:.2e} {y_ecw:.2e} {z:.2e} 1.00e-06 \n')
             j += 1
         else:
             print('cells out of bounds')
@@ -251,7 +251,7 @@ def main(args):
     #read it
     src = Template( filein.read() )
     #do the substitution
-    result = src.safe_substitute({'SucRatio' : SucRatio, 'SucPct' : SucPct,
+    result = src.safe_substitute({'SucRatio' : SucRatio, 'IPTG': IPTG,'SucPct' : SucPct,
                                 'n_cyanos' : n_cyanos, 'n_ecw' : n_ecw,
                                 'Replicates' : args.reps,'Timesteps' : args.timesteps,
                                 'date' : today,
