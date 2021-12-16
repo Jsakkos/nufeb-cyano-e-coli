@@ -130,8 +130,8 @@ def main(args):
     SucRatio = 1
 
     SucPct = int(SucRatio*100)
-    n_cyanos = 1
-    n_ecw = 1
+    n_cyanos = args.num
+    n_ecw = args.num
     n_cells = n_cyanos + n_ecw
     cyGroup = 'group CYANO type 1'
     ecwGroup = 'group ECW type 2'
