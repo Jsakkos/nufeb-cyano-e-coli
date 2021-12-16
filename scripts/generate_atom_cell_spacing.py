@@ -11,7 +11,8 @@ from pathlib import Path
 from glob import glob
 _logger = logging.getLogger(__name__)
 
-cwd = os.getcwd()
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 def parse_args(args):
     """Parse command line parameters
 
@@ -26,7 +27,7 @@ def parse_args(args):
     parser = argparse.ArgumentParser(description='Create atom definition files')
     parser.add_argument('--n', dest='num', action='store',
                     default=10,
-                    help='Create atom definition files for NUFEB with --n #files desired (default is 1)')
+                    help='Number of spacing pairs')
     parser.add_argument('--r', dest='reps', action='store',
                     default=1,
                     help='Number of replicates')
@@ -58,6 +59,8 @@ def parse_args(args):
     help='Number of cyanobacteria and e.coli to initialize simulation with, `e.g., 100,100. ` Default is random number between 1 and 100.')
     parser.add_argument('--sucR',dest='SucRatio',action='store',default=None,
                     help='Set sucrose secretion ratio (0 to 1). Default is random.')   
+    parser.add_argument('--iptg',dest='iptg',action='store',default=None,type=float,
+                    help='Set IPTG induction for sucrose secretion (0 to 1). Default is random.') 
     parser.add_argument('--muecw',dest='mu_ecw',action='store',default=6.71e-5,type=float,
                     help='E. coli W maximum growth rate')  
     parser.add_argument('--mucya',dest='mu_cya',action='store',default=1.89e-5,type=float,
@@ -70,6 +73,10 @@ def parse_args(args):
         help='E. coli W Ksuc')  
     parser.add_argument('--maintecw',dest='maint_ecw',action='store',default=0,type=float,
         help='E. coli W maintenance cost')  
+    parser.add_argument('--spmax',dest='spmax',action='store',default=-4,type=int,
+        help='Max spacing (log, meters)')  
+    parser.add_argument('--spmin',dest='spmin',action='store',default=-6,type=float,
+        help='Min spacing (log, meters)')  
 
     parser.add_argument('--vtk',dest='vtk',action='store',default=False,help='Output VTK files')
     parser.add_argument('--h5',dest='hdf5',action='store',default=True,help='Output HDF5 files')
@@ -116,141 +123,149 @@ def main(args):
     if not os.path.isdir('../runs'):
         os.mkdir('../runs')
     today = str(date.today())
-    spacing = np.logspace(-4,-6,num=int(args.num))
+    spacing = np.logspace(args.spmin,args.spmax,num=int(args.num))
+
+
+    IPTG = 1
+    SucRatio = 1
+
+    SucPct = int(SucRatio*100)
+    n_cyanos = 1
+    n_ecw = 1
+    n_cells = n_cyanos + n_ecw
+    cyGroup = 'group CYANO type 1'
+    ecwGroup = 'group ECW type 2'
+    cyDiv = f'fix d1 CYANO divide 100 v_EPSdens v_divDia1 {random.randint(1,1e6)}'
+    ecwDiv = f'fix d2 ECW divide 100 v_EPSdens v_divDia2 {random.randint(1,1e6)}'
+    cell_types = ['cyano','ecw']
+    RUN_DIR = Path(f'../runs/Run_{n_cyanos}_{n_ecw}_{SucPct}_{args.reps}_{today}_{random.randint(1,1e6)}')
+    if not os.path.isdir(RUN_DIR):
+        os.mkdir(RUN_DIR)
+
+    InitialConditions = {'cyano': {'StartingCells' : 1,'GrowthRate' : 1.89e-5,
+        'min_size' : 1.37e-6, 'max_size' : 1.94e-6, 'Density' : 370,
+            'K_s' : {'sub' : 3.5e-4,'o2' : 2e-4, 'suc' : 1e-2,'co2' : 1.38e-4},
+            'GrowthParams' : {'Yield' : 0.55,'Maintenance' : 0,'Decay' : 0}},
+            'ecw': {'StartingCells' : n_ecw,'GrowthRate' : args.mu_ecw,
+        'min_size' : 8.8e-7, 'max_size' : 1.39e-6, 'Density' : 230,
+            'K_s' : {'sub' : 0,'o2' : 1e-3, 'suc' : args.ksuc,'co2' : 5e-2},
+            'GrowthParams' : {'Yield' : 0.43,'Maintenance' : args.maint_ecw,'Decay' : 0}},
+            'Nutrients' : {'Concentration' :  {'sub' : 1e-1,'o2' : 9e-3, 'suc' : float(args.sucrose)*SucMW*1e-3, 'co2' : float(args.co2)*CO2MW*1e-3},
+            'State' : {'sub' : 'g','o2' : 'l', 'suc' : 'l', 'co2' : 'l'},
+            'xbc' : {'sub' : 'nn','o2' : 'nn', 'suc' : 'nn', 'co2' : 'nn'},
+            'ybc' : {'sub' : 'nn','o2' : 'nn', 'suc' : 'nn', 'co2' : 'nn'},
+            'zbc' : {'sub' : 'nn','o2' : 'nd', 'suc' : 'nn', 'co2' : 'nd'}},
+            'Diff_c' : {'sub' : 0,'o2' : 2.30e-9, 'suc' : 5.2e-10,'co2' : 1.9e-09},
+            'Dimensions' : [1e-3,1e-3,1e-4],'SucRatio' : SucRatio,'Replicates' : 1,
+
+            }
+
+
+    NutesNum = len(InitialConditions['Nutrients']['Concentration'])
+
+    L = [' NUFEB Simulation\r\n\n',f'     {n_cells} atoms \n',
+        f'     2 atom types \n',f'     {NutesNum} nutrients \n\n',
+        f'  0.0   {InitialConditions["Dimensions"][0] :.2e}  xlo xhi \n',f'  0.0   {InitialConditions["Dimensions"][1] :.2e}  ylo yhi \n',
+        f'  0.0   {InitialConditions["Dimensions"][2] :.2e}  zlo zhi \n\n', ' Atoms \n\n'
+        ]
+    j=1
     for n in range(len(spacing)):
-        x_cya = 5e-4-spacing[n]/2
-        x_ecw = 5e-4+spacing[n]/2
-        if args.SucRatio is not None:
-            SucRatio = 1
+        x_cya = 1e-3/(len(spacing)+1)*(n+1)
+        y_cya = 1e-3/(len(spacing)+1)
+        y_ecw = y_cya+spacing[n]
+        if x_cya < 1e-3 and y_cya < 1e-3 and y_ecw < 1e-3:
+            L.append(f'     {j} 1 1.39e-06  370 {x_cya} {y_cya} 5e-05 1.39e-06 \n')
+            j += 1
+            L.append(f'     {j} 2 1.05e-06  230 {x_cya} {y_ecw} 5e-05 1.05e-06 \n')
+            j += 1
         else:
-            SucRatio = round(random.random(),3)
-        SucPct = int(SucRatio*100)
-        n_cyanos = 1
-        n_ecw = 1
-        n_cells = n_cyanos + n_ecw
-        cyGroup = 'group CYANO type 1'
-        ecwGroup = 'group ECW type 2'
-        cyDiv = f'fix d1 CYANO divide 100 v_EPSdens v_divDia1 {random.randint(1,1e6)}'
-        ecwDiv = f'fix d2 ECW divide 100 v_EPSdens v_divDia2 {random.randint(1,1e6)}'
-        cell_types = ['cyano','ecw']
-        RUN_DIR = Path(f'../runs/Run_{n_cyanos}_{n_ecw}_{SucPct}_{args.reps}_{today}_{random.randint(1,1e6)}')
-        if not os.path.isdir(RUN_DIR):
-            os.mkdir(RUN_DIR)
-
-        InitialConditions = {'cyano': {'StartingCells' : 1,'GrowthRate' : 1.89e-5,
-            'min_size' : 1.37e-6, 'max_size' : 1.94e-6, 'Density' : 370,
-                'K_s' : {'sub' : 3.5e-4,'o2' : 2e-4, 'suc' : 1e-2,'co2' : 1.38e-4},
-                'GrowthParams' : {'Yield' : 0.55,'Maintenance' : 0,'Decay' : 0}},
-                'ecw': {'StartingCells' : n_ecw,'GrowthRate' : args.mu_ecw,
-            'min_size' : 8.8e-7, 'max_size' : 1.39e-6, 'Density' : 230,
-                'K_s' : {'sub' : 0,'o2' : 1e-3, 'suc' : args.ksuc,'co2' : 5e-2},
-                'GrowthParams' : {'Yield' : 0.43,'Maintenance' : args.maint_ecw,'Decay' : 0}},
-                'Nutrients' : {'Concentration' :  {'sub' : 1e-1,'o2' : 9e-3, 'suc' : float(args.sucrose)*SucMW*1e-3, 'co2' : float(args.co2)*CO2MW*1e-3},
-                'State' : {'sub' : 'g','o2' : 'l', 'suc' : 'l', 'co2' : 'l'},
-                'xbc' : {'sub' : 'nn','o2' : 'nn', 'suc' : 'nn', 'co2' : 'nn'},
-                'ybc' : {'sub' : 'nn','o2' : 'nn', 'suc' : 'nn', 'co2' : 'nn'},
-                'zbc' : {'sub' : 'nn','o2' : 'nd', 'suc' : 'nn', 'co2' : 'nd'}},
-                'Diff_c' : {'sub' : 0,'o2' : 2.30e-9, 'suc' : 5.2e-10,'co2' : 1.9e-09},
-                'Dimensions' : [1e-3,1e-3,1e-4],'SucRatio' : SucRatio,'Replicates' : int(args.reps),
-                'Spacing': spacing[n]
-
-                }
+            print('cells out of bounds')
+            break
 
 
-        NutesNum = len(InitialConditions['Nutrients']['Concentration'])
-        for r in range(1,int(args.reps)+1):
-            L = [' NUFEB Simulation\r\n\n',f'     {n_cells} atoms \n',
-                f'     2 atom types \n',f'     {NutesNum} nutrients \n\n',
-                f'  0.0   {InitialConditions["Dimensions"][0] :.2e}  xlo xhi \n',f'  0.0   {InitialConditions["Dimensions"][1] :.2e}  ylo yhi \n',
-                f'  0.0   {InitialConditions["Dimensions"][2] :.2e}  zlo zhi \n\n', ' Atoms \n\n'
-                ]
-            L.append(f'     1 1 1.39e-06  370 {x_cya} {5e-4} 5e-05 1.39e-06 \n')
-            L.append(f'     2 2 1.05e-06  230 {x_ecw} {5e-4} 5e-05 1.05e-06 \n')
+    L.append('\n')
+    L.append(' Nutrients \n\n')
+    for i,nute in enumerate(InitialConditions['Nutrients']['Concentration'].keys()):
+        L.append(f'     %d {nute} {InitialConditions["Nutrients"]["State"][nute]} {InitialConditions["Nutrients"]["xbc"][nute]} {InitialConditions["Nutrients"]["ybc"][nute]} {InitialConditions["Nutrients"]["zbc"][nute]} {InitialConditions["Nutrients"]["Concentration"][nute] :.2e} {InitialConditions["Nutrients"]["Concentration"][nute] :.2e} \n'% (i+1))
+
+    L.append('\n')
+    L.append(' Type Name \n\n')
+    for c, CellType in enumerate(cell_types,start=1):
+        L.append(f'     {c} {CellType}  \n')
+    L.append('\n')
+    L.append(' Diffusion Coeffs \n\n')
+    for key in InitialConditions['Diff_c'].keys():
+        L.append(f'     {key} {InitialConditions["Diff_c"][key]} \n')
+    L.append('\n')
+    L.append(' Growth Rate \n\n')
+    for CellType in cell_types:
+        L.append(f'     {CellType} {InitialConditions[CellType]["GrowthRate"]} \n')
+    L.append('\n')
+    L.append(' Ks \n\n')
+    for CellType in cell_types:
+        k = f'     {CellType}'
+        for key in InitialConditions[CellType]['K_s'].keys():
+            k = k + ' ' + str(InitialConditions[CellType]['K_s'][key])
+        k = k + f' \n'
+        L.append(k)
+    L.append('\n')
+    for key in InitialConditions["cyano"]['GrowthParams'].keys():
+        L.append(' ' + key + f' \n\n')
+        for CellType in cell_types:
+            L.append(f'     {CellType} {InitialConditions[CellType]["GrowthParams"][key]} \n')
+        L.append('\n')
 
 
-            L.append('\n')
-            L.append(' Nutrients \n\n')
-            for i,nute in enumerate(InitialConditions['Nutrients']['Concentration'].keys()):
-                L.append(f'     %d {nute} {InitialConditions["Nutrients"]["State"][nute]} {InitialConditions["Nutrients"]["xbc"][nute]} {InitialConditions["Nutrients"]["ybc"][nute]} {InitialConditions["Nutrients"]["zbc"][nute]} {InitialConditions["Nutrients"]["Concentration"][nute] :.2e} {InitialConditions["Nutrients"]["Concentration"][nute] :.2e} \n'% (i+1))
+    L.append('\n\n')
 
-            L.append('\n')
-            L.append(' Type Name \n\n')
-            for c, CellType in enumerate(cell_types,start=1):
-                L.append(f'     {c} {CellType}  \n')
-            L.append('\n')
-            L.append(' Diffusion Coeffs \n\n')
-            for key in InitialConditions['Diff_c'].keys():
-                L.append(f'     {key} {InitialConditions["Diff_c"][key]} \n')
-            L.append('\n')
-            L.append(' Growth Rate \n\n')
-            for CellType in cell_types:
-                L.append(f'     {CellType} {InitialConditions[CellType]["GrowthRate"]} \n')
-            L.append('\n')
-            L.append(' Ks \n\n')
-            for CellType in cell_types:
-                k = f'     {CellType}'
-                for key in InitialConditions[CellType]['K_s'].keys():
-                    k = k + ' ' + str(InitialConditions[CellType]['K_s'][key])
-                k = k + f' \n'
-                L.append(k)
-            L.append('\n')
-            for key in InitialConditions["cyano"]['GrowthParams'].keys():
-                L.append(' ' + key + f' \n\n')
-                for CellType in cell_types:
-                    L.append(f'     {CellType} {InitialConditions[CellType]["GrowthParams"][key]} \n')
-                L.append('\n')
+    #write atom definition file
+    f= open(RUN_DIR / f"atom_{n_cyanos}_{n_ecw}_{SucPct}_{1}_{today}.in","w+")
+    f.writelines(L)
+
+    #write initial conditions json file
+    dumpfile = open(RUN_DIR / 'metadata.json','w')
+    json.dump(InitialConditions, dumpfile, indent = 6)
+    dumpfile.close()
+    #write Inputscript
+    #open the file
 
 
-            L.append('\n\n')
-
-            #write atom definition file
-            f= open(RUN_DIR / f"atom_{n_cyanos}_{n_ecw}_{SucPct}_{r}_{today}.in","w+")
-            f.writelines(L)
-
-        #write initial conditions json file
-        dumpfile = open(RUN_DIR / 'metadata.json','w')
-        json.dump(InitialConditions, dumpfile, indent = 6)
-        dumpfile.close()
-        #write Inputscript
-        #open the file
-
-
-        if args.lammps ==True:
-            lammps = 'dump    id all custom 100 output.lammmps id type diameter x y z'
-        else: 
-            lammps = ''
-        if args.hdf5 == True:
-            hdf5 = 'dump    traj all bio/hdf5 100 trajectory.h5 id type radius x y z con'
-        else:
-            hdf5 = ''
-        if args.vtk == True:
-            vtk = 'dump    du1 all vtk 100 atom_*.vtu id type diameter x y z'
-            grid = 'dump    du2 all grid 100 grid_%_*.vti con'
-            vtk_tarball = 'true'
-        else:
-            vtk = ''
-            grid = ''
-            vtk_tarball = 'false'
-        filein = open( r'../templates/inputscript_cell_spacing.txt' )
-        #read it
-        src = Template( filein.read() )
-        #do the substitution
-        result = src.safe_substitute({'SucRatio' : SucRatio, 'SucPct' : SucPct,
-                                    'n_cyanos' : n_cyanos, 'n_ecw' : n_ecw,
-                                    'Replicates' : args.reps,'Timesteps' : args.timesteps,
-                                    'date' : today,
-                                    'CYANOGroup' : cyGroup,
-                                    'ECWGroup' : ecwGroup,
-                                    'Zheight' : InitialConditions["Dimensions"][2],
-                                    'CYANODiv'  : cyDiv, 'ECWDiv' : ecwDiv,
-                                    'GridMesh' : f'{int(InitialConditions["Dimensions"][0]*1e6/int(args.grid))} {int(InitialConditions["Dimensions"][1]*1e6/int(args.grid))} {int(InitialConditions["Dimensions"][2]*1e6/int(args.grid))}',
-                                    'lammps' : lammps,
-                                    'hdf5' : hdf5,
-                                    'vtk' : vtk,
-                                    })
-        f= open(RUN_DIR / f"Inputscript_{n_cyanos}_{n_ecw}_{SucPct}_{today}.lammps","w+")
-        f.writelines(result)
-        _logger.info("Script ends here")
+    if args.lammps ==True:
+        lammps = 'dump    id all custom 100 output.lammmps id type diameter x y z'
+    else: 
+        lammps = ''
+    if args.hdf5 == True:
+        hdf5 = 'dump    traj all bio/hdf5 100 trajectory.h5 id type radius x y z con'
+    else:
+        hdf5 = ''
+    if args.vtk == True:
+        vtk = 'dump    du1 all vtk 100 atom_*.vtu id type diameter x y z'
+        grid = 'dump    du2 all grid 100 grid_%_*.vti con'
+        vtk_tarball = 'true'
+    else:
+        vtk = ''
+        grid = ''
+        vtk_tarball = 'false'
+    filein = open( r'../templates/inputscript_cell_spacing.txt' )
+    #read it
+    src = Template( filein.read() )
+    #do the substitution
+    result = src.safe_substitute({'SucRatio' : SucRatio, 'SucPct' : SucPct,
+                                'n_cyanos' : n_cyanos, 'n_ecw' : n_ecw,
+                                'Replicates' : args.reps,'Timesteps' : args.timesteps,
+                                'date' : today,
+                                'CYANOGroup' : cyGroup,
+                                'ECWGroup' : ecwGroup,
+                                'Zheight' : InitialConditions["Dimensions"][2],
+                                'CYANODiv'  : cyDiv, 'ECWDiv' : ecwDiv,
+                                'GridMesh' : f'{int(InitialConditions["Dimensions"][0]*1e6/int(args.grid))} {int(InitialConditions["Dimensions"][1]*1e6/int(args.grid))} {int(InitialConditions["Dimensions"][2]*1e6/int(args.grid))}',
+                                'lammps' : lammps,
+                                'hdf5' : hdf5,
+                                'vtk' : vtk,
+                                })
+    f= open(RUN_DIR / f"Inputscript_{n_cyanos}_{n_ecw}_{SucPct}_{today}.lammps","w+")
+    f.writelines(result)
+    _logger.info("Script ends here")
 
 def run():
     """Calls :func:`main` passing the CLI arguments extracted from :obj:`sys.argv`
