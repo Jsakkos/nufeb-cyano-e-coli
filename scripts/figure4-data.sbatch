@@ -4,7 +4,10 @@
 #SBATCH --mem-per-cpu=1g
 #SBATCH -t 10:00:00 
 #SBATCH --output=fig4.out 
-#SBATCH --error=fig4.err 
+#SBATCH --error=fig4.err
+#SBATCH --mail-type=END
+#SBATCH --mail-user=sakkosjo@msu.edu 
+
 module load parallel
 export LAMMPS=~/NUFEB/lammps/src/lmp_png
 srun="srun -N1 -n2 --mpi=pmi2 --mem=1g --time 2:00:00"
