@@ -1,6 +1,7 @@
 #!/bin/bash -l
 #SBATCH -J fig4
 #SBATCH --ntasks=100
+#SBATCH --ntasks-per-node=2
 #SBATCH --mem-per-cpu=1g
 #SBATCH -t 10:00:00 
 #SBATCH --output=fig4.out 
