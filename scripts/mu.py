@@ -14,5 +14,5 @@ DIR = Path('/mnt/gs18/scratch/users/sakkosjo/mu-sweep/runs')
 folders = [path for path in DIR.iterdir() if path.is_dir()]
 for folder in folders:
     os.chdir(folder)
-    text = 'srun -N1 -n2 --mpi=pmi2 --mem=1g --time 2:00:00 ~/NUFEB/lammps/src/lmp_png -in *.lammps > nufeb.log'
+    text = 'srun -N1 -n2 --mpi=pmi2 --mem=1g --time 2:00:00 ~/NUFEB/lammps/src/lmp_png -in *.lammps > nufeb.log &'
     os.system(text)
