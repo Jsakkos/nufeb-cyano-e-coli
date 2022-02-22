@@ -430,7 +430,7 @@ def main(args):
 
         # write atom definition file
         f = open(
-            RUN_DIR / f"atom_{n_cyanos}_{n_ecw}_{IPTG:.0e}_{1}_{today}.in", "w+"
+            RUN_DIR / f"atom.in", "w+"
         )
         f.writelines(L)
 
