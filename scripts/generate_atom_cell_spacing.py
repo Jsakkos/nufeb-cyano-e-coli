@@ -292,7 +292,7 @@ def main(args):
             n_cyanos = int(args.cells.split(",")[0])
             n_ecw = int(args.cells.split(",")[1])
         else:
-            n_cyanos = int(50)
+            n_cyanos = int(500)
             n_ecw = int(1)
         n_cells = n_cyanos + n_ecw
         cyGroup = "group CYANO type 1"
