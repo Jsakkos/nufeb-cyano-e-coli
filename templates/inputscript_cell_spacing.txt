@@ -60,7 +60,7 @@ variable layer equal -1
 
 ##############Define IBm Commands##############
 
-fix k1 all kinetics 100 10 10 1 v_diffT v_layer niter 1000000
+fix k1 all kinetics 100 ${GridMesh} v_diffT v_layer niter 1000000
 fix kgm all kinetics/growth/monod sucexp $IPTG
 fix g1 all kinetics/diffusion v_tol
 ${CYANODiv}
