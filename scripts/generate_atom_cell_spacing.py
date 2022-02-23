@@ -350,18 +350,6 @@ def main(args):
             "Replicates": int(args.reps),
             'Spacing': spacing[n-1],
         }
-        grids = int(args.grid)
-        while True:
-            if (
-                InitialConditions["Dimensions"][0] * 1e6 % grids == 0
-                and InitialConditions["Dimensions"][1] * 1e6 % grids == 0
-                and InitialConditions["Dimensions"][2] * 1e6 % grids == 0
-            ):
-                Mesh = f'{int(InitialConditions["Dimensions"][0]*1e6/grids)} {int(InitialConditions["Dimensions"][1]*1e6/grids)} {int(InitialConditions["Dimensions"][2]*1e6/grids)}'
-                break
-            else:
-                grids += 1
-
         NutesNum = len(InitialConditions["Nutrients"]["Concentration"])
 
         L = [
@@ -377,14 +365,14 @@ def main(args):
         # seed cyanobacteria
         j=1
         for cell in range(n_cyanos):
-            x = random.uniform(5e-5,6e-5)
+            x = random.uniform(5e-5+1.39e-06,6e-5-1.39e-06)
             y = random.uniform(1.39e-06,InitialConditions["Dimensions"][1]-1.39e-6)
             z = random.uniform(1.39e-06,InitialConditions["Dimensions"][2]-1.39e-6)
             L.append(f'     {j} 1 1.39e-06  370 {x:.2e} {y:.2e} {z:.2e} 1.39e-06 \n')
             j += 1
         
         # seed e. coli
-        L.append(f'     {j} 2 1.00e-06  230 {spacing[n-1]:.2e} {(InitialConditions["Dimensions"][1]+1e-6)/2:.2e} {(InitialConditions["Dimensions"][2]+1e-6)/2:.2e} 1.00e-06 \n')
+        L.append(f'     {j} 2 1.00e-06  230 {spacing[n-1]-6e-5:.2e} {(InitialConditions["Dimensions"][1]+1e-6)/2:.2e} {(InitialConditions["Dimensions"][2]+1e-6)/2:.2e} 1.00e-06 \n')
         L.append("\n")
         L.append(" Nutrients \n\n")
         for i, nute in enumerate(
