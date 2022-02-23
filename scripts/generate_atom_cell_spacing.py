@@ -372,7 +372,7 @@ def main(args):
             j += 1
         
         # seed e. coli
-        L.append(f'     {j} 2 1.00e-06  230 {spacing[n-1]-6e-5:.2e} {(InitialConditions["Dimensions"][1]+1e-6)/2:.2e} {(InitialConditions["Dimensions"][2]+1e-6)/2:.2e} 1.00e-06 \n')
+        L.append(f'     {j} 2 1.00e-06  230 {spacing[n-1]-1e-6:.2e} {(InitialConditions["Dimensions"][1]+1e-6)/2:.2e} {(InitialConditions["Dimensions"][2]+1e-6)/2:.2e} 1.00e-06 \n')
         L.append("\n")
         L.append(" Nutrients \n\n")
         for i, nute in enumerate(
