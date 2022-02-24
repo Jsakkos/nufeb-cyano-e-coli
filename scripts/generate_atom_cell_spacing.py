@@ -272,9 +272,9 @@ def main(args):
             / (1e-4 * 1e-4 * 1e-5)
         )
     if args.scale =='linear' or args.scale =='Linear':
-        spacing = np.linspace(1e-6,args.extent,args.num)  
+        spacing = np.linspace(6e-5,args.extent,args.num)  
     elif args.scale =='log' or args.scale =='logarithmic':
-        spacing = np.logspace(-6,find_exp(args.extent),args.num)
+        spacing = np.logspace(-6,find_exp(args.extent)-.05,args.num)+6e-5
     for n in range(1, int(args.num) + 1):
         if args.iptg is not None:
             IPTG = float(args.iptg)
@@ -308,7 +308,7 @@ def main(args):
         RUN_DIR = Path(f'../runs/Run_{n_cyanos}_{n_ecw}_{SucPct}_{args.reps}_{today}_{random.randint(1,1e6)}')
         if not os.path.isdir(RUN_DIR):
             os.mkdir(RUN_DIR)
-        # TODO embed cell type into metadata file and generate cell type programmatically
+
         InitialConditions = {
             "cyano": {
                 "StartingCells": n_cyanos,
