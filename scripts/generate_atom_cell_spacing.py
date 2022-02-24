@@ -217,7 +217,7 @@ def parse_args(args):
         dest='closed',
         help='Closed system for sucrose',
         action="store",
-        default=True,
+        default=False,
         type=bool,
     )
     return parser.parse_args(args)
@@ -361,6 +361,9 @@ def main(args):
         }
         if args.closed == False:
             InitialConditions["Nutrients"]["xbc"]["suc"] = "dd"
+            print('system is open')
+        else:
+            print(args.closed)
         NutesNum = len(InitialConditions["Nutrients"]["Concentration"])
 
         L = [
