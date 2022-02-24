@@ -211,6 +211,15 @@ def parse_args(args):
         default='log',
         type=str,
     )
+    parser.add_argument(
+        "-c",
+        "--closed",
+        dest='closed',
+        help='Closed system for sucrose',
+        action="store",
+        default=True,
+        type=bool,
+    )
     return parser.parse_args(args)
 
 def find_exp(number:float) -> int:
@@ -350,6 +359,8 @@ def main(args):
             "Replicates": int(args.reps),
             'Spacing': spacing[n-1],
         }
+        if args.closed == False:
+            InitialConditions["Nutrients"]["xbc"]["suc"] = "dd"
         NutesNum = len(InitialConditions["Nutrients"]["Concentration"])
 
         L = [
