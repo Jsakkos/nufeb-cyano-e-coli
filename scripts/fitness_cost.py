@@ -36,11 +36,13 @@ for fit in fitness:
         srun_text = 'srun -N1 -n1 --mpi=pmi2 --mem=1g --time 3:30:00 /mnt/gs18/scratch/users/sakkosjo/nufeb-fitness/src/lmp_png -in *.lammps > nufeb.log &'
         BASE_DIR = Path(f'runs/')
         folders = [path for path in BASE_DIR.iterdir() if path.is_dir()]
+        for i, folder in enumerate(folders):
+            os.system(f'mv {folder} {folder}_{fit}_{flux}_{i}')
         #for folder in folders:
         #    os.system(f'cd {folder} && {srun_text}')
-        os.system('base=$PWD; for dir in runs/*/;do;cd "$dir";srun -N1 -n1 --mpi=pmi2 --mem=1g --time 3:30:00 /mnt/gs18/scratch/users/sakkosjo/nufeb-fitness/src/lmp_png -in *.lammps > nufeb.log &;cd "$base";done;wait')
-        os.system(f'mv runs runs_{fit}_{flux}')
-        print(f'Done with fitness: {fit},flux: {flux}')
+        #         os.system('base=$PWD; for dir in runs/*/;do;cd "$dir";srun -N1 -n1 --mpi=pmi2 --mem=1g --time 3:30:00 /mnt/gs18/scratch/users/sakkosjo/nufeb-fitness/src/lmp_png -in *.lammps > nufeb.log &;cd "$base";done;wait')
+        #os.system(f'mv runs runs_{fit}_{flux}')
+        #print(f'Done with fitness: {fit},flux: {flux}')
 
 
 
