@@ -12,7 +12,8 @@ import numpy as np
     #Change input params
 fitness = np.linspace(0,.9,10)
 biomass_flux = np.linspace(0.5,5,10)
-
+os.chdir('/mnt/gs18/scratch/users/sakkosjo/nufeb-fitness')
+os.system('nufeb-clean')
 for fit in fitness:
     for flux in biomass_flux:
         print('Recompiling')
@@ -28,7 +29,7 @@ for fit in fitness:
         #Compile NUFEB
         os.chdir('/mnt/gs18/scratch/users/sakkosjo/nufeb-fitness')
         os.system('module load libpng && ./install.sh --enable-hdf5')
-        os.system('nufeb-clean')
+        
         print(f'fitness: {fit},flux: {flux}')
         #Seed new simulations
         text = 'nufeb-seed --n 3 --cells 50,50 --iptg 1'
