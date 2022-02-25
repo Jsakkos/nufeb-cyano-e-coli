@@ -13,7 +13,6 @@ read_data_bio atom.in
 ##############Define initial particle distribution##############
 
 lattice sc 1e-6 origin 0 0 0
-region reg block 0 1000 0 1000 0 100
 
 ${CYANOGroup}
 ${ECWGroup}
