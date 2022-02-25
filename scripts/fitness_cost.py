@@ -13,11 +13,12 @@ import numpy as np
 fitness = np.linspace(0.1,1,10)
 biomass_flux = np.linspace(0.5,5,10)
 #os.chdir('/mnt/gs18/scratch/users/sakkosjo/nufeb-fitness')
-os.chdir('/mnt/gs18/scratch/users/sakkosjo/fitness-cost')
+
 #os.mkdir('finished')
 #os.system('nufeb-clean')
 for fit in fitness:
     for flux in biomass_flux:
+        os.chdir('/mnt/gs18/scratch/users/sakkosjo/fitness-cost')
         print('Cloning Repo')
         os.system(f'git clone https://github.com/Jsakkos/NUFEB nufeb_{fit}_{flux} --recursive')
         os.chdir(f'/mnt/gs18/scratch/users/sakkosjo/fitness-cost/nufeb_{fit}_{flux}')
@@ -36,10 +37,10 @@ for fit in fitness:
         #os.chdir('/mnt/gs18/scratch/users/sakkosjo/nufeb-fitness')
         os.system('module load libpng && ./install.sh --enable-hdf5')
         
-        print(f'fitness: {fit},flux: {flux}')
+        #print(f'fitness: {fit},flux: {flux}')
         #Seed new simulations
-        text = 'nufeb-seed --n 3 --cells 50,50 --iptg 1'
-        os.system(text)
+        #text = 'nufeb-seed --n 3 --cells 50,50 --iptg 1'
+        #os.system(text)
         #print('Running simulations')
         #os.system('/mnt/home/sakkosjo/pyrun.sh')
         #print('Moving simulations')
