@@ -10,7 +10,7 @@ import numpy as np
 
 
     #Change input params
-fitness = np.linspace(0,.9,10)
+fitness = np.linspace(0.1,1,10)
 biomass_flux = np.linspace(0.5,5,10)
 os.chdir('/mnt/gs18/scratch/users/sakkosjo/nufeb-fitness')
 os.mkdir('finished')
