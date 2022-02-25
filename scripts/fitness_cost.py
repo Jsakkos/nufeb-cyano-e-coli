@@ -28,6 +28,7 @@ for fit in fitness:
         #Compile NUFEB
         os.chdir('/mnt/gs18/scratch/users/sakkosjo/nufeb-fitness')
         os.system('module load libpng && ./install.sh --enable-hdf5')
+        os.system('nufeb-clean')
         print(f'fitness: {fit},flux: {flux}')
         #Seed new simulations
         text = 'nufeb-seed --n 3 --cells 50,50 --iptg 1'
