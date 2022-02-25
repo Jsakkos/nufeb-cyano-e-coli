@@ -20,7 +20,7 @@ for fit in fitness:
         #read it
         src = Template( filein.read() )
         #do the substitution
-        result = src.safe_substitute({'fitness' : fitness, 'biomass_flux' : biomass_flux
+        result = src.safe_substitute({'fitness' : fit, 'biomass_flux' : flux
                                             
                                             })
         with open("/mnt/gs18/scratch/users/sakkosjo/nufeb-fitness/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
