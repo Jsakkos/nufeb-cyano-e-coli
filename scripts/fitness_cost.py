@@ -20,9 +20,13 @@ for fit in fitness:
     for flux in biomass_flux:
         os.chdir('/mnt/gs18/scratch/users/sakkosjo/fitness-cost')
         print('Cloning Repo')
-        os.system(f'git clone https://github.com/Jsakkos/NUFEB nufeb_{fit}_{flux} --recursive')
+        if Path(f'/mnt/gs18/scratch/users/sakkosjo/fitness-cost/nufeb_{fit}_{flux}').is_dir():
+            continue
+        else:
+            os.system(f'cp -R /mnt/home/sakkosjo/NUFEB /mnt/gs18/scratch/users/sakkosjo/fitness-cost/nufeb_{fit}_{flux}')
+        #os.system(f'git clone https://github.com/Jsakkos/NUFEB nufeb_{fit}_{flux} --recursive')
         os.chdir(f'/mnt/gs18/scratch/users/sakkosjo/fitness-cost/nufeb_{fit}_{flux}')
-        os.system('git checkout cyano')
+        #os.system('git checkout cyano')
         os.system('cd thirdparty && ./install-hdf5.sh')
         os.chdir(f'/mnt/gs18/scratch/users/sakkosjo/fitness-cost/nufeb_{fit}_{flux}')
         print('Compiling')
