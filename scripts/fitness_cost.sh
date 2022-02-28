@@ -16,5 +16,11 @@ for i in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0; do
         wait
         mv runs runs_${i}_${j}
         echo "fitness $i, biomass $j done"
+        #check if the previous run went ok, exit if not
+        if [ $? -ne 0 ]
+        then
+            echo "Something went wrong while running simulations, exiting"
+            exit
+        fi
     done
 done
