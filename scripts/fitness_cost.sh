@@ -1,6 +1,6 @@
 #!/bin/bash -l
 module load libpng
-export LAMMPS=~/NUFEB/lammps/src/lmp_png
+export LAMMPS=/mnt/gs18/scratch/users/sakkosjo/fitness-cost/lammps/src/lmp_png
 srun="srun -N1 -n1 --mpi=pmi2 --mem=1g --time 3:30:00"
 cd /mnt/gs18/scratch/users/sakkosjo/fitness-cost
 for i in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0; do
