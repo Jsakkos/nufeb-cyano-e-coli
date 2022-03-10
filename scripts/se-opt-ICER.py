@@ -17,7 +17,6 @@ from sklearn.metrics import mean_squared_error
 from skopt import dump, load
 from skopt.callbacks import CheckpointSaver
 import seaborn as sns
-
 test_data = pd.read_excel('/mnt/home/sakkosjo/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
 
@@ -48,7 +47,7 @@ def recompile(alpha,tau,c,alpha2,tau2,c2):
         tau2 ([type]): [description]
         c2 ([type]): [description]
     """
-    #os.chdir('/mnt/home/sakkosjo/NUFEB/')
+    #
     filein = open( f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/templates/fix_bio_kinetics_monod2.txt' )
     #read it
     src = Template( filein.read() )
@@ -56,10 +55,11 @@ def recompile(alpha,tau,c,alpha2,tau2,c2):
     result = src.safe_substitute({'alpha' : alpha, 'tau' : tau, 'c' : c,'alpha2' : alpha2, 'tau2' : tau2, 'c2' : c2
                                         
                                         })
-    with open("/mnt/home/sakkosjo/NUFEB/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
+    with open("/mnt/home/sakkosjo/NUFEB-release/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
        f.writelines(result)
     #Compile NUFEB
-    os.system('/mnt/home/sakkosjo/rapid-compile.sh')
+    os.chdir('/mnt/home/sakkosjo/NUFEB-release/')
+    os.system('module load libpng; ./install.sh --enable-hdf5 --shared')
 
 def func(x):
     """Optimization function
@@ -92,7 +92,7 @@ def func(x):
     os.system('nufeb-clean')
     #Seed new simulations
     for iptg in test_data.IPTG:
-        text = f'nufeb-seed --n 3 --cells 100,0 --d 1e-4,1e-4,1e-4 --grid 20 --t 8700  --mucya 1.89e-5 --sucR {iptg}'
+        text = f'nufeb-seed --n 5 --cells 10,0 --t 8700 --mucya 1.89e-5 --iptg {iptg}'
         os.system(text)
     #Run new simulations
     os.system('sbatch /mnt/home/sakkosjo/nufeb-cyano-e-coli/scripts/nufeb-parallel.sbatch')
@@ -109,7 +109,7 @@ def func(x):
     for x in data:
         temp = pd.concat([x.ntypes.cyano/CellNum2OD,x.ntypes.step/60/60*x.timestep,x.avg_con.Sucrose.reset_index(drop=True)],axis=1)
         temp.columns=['OD750','Hours','Sucrose']
-        temp['IPTG'] = x.metadata['SucRatio']
+        temp['IPTG'] = x.metadata['IPTG']
         dfs.append(temp)
     df = pd.concat(dfs,ignore_index=True)
     df = df.loc[(df.Hours > 23.8) & (df.Hours < 24)]
