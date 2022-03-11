@@ -55,11 +55,11 @@ def recompile(alpha,tau,c,alpha2,tau2,c2):
     result = src.safe_substitute({'alpha' : alpha, 'tau' : tau, 'c' : c,'alpha2' : alpha2, 'tau2' : tau2, 'c2' : c2
                                         
                                         })
-    with open("/mnt/home/sakkosjo/NUFEB-release/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
+    with open("/mnt/home/sakkosjo/NUFEB/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
        f.writelines(result)
     #Compile NUFEB
-    os.chdir('/mnt/home/sakkosjo/NUFEB-release/')
-    os.system('module load libpng; ./install.sh --enable-hdf5 --shared')
+    os.chdir('/mnt/home/sakkosjo/NUFEB/')
+    os.system('module load libpng; ./install.sh --enable-hdf5')
 
 def func(x):
     """Optimization function
@@ -132,32 +132,33 @@ def func(x):
     Nfeval += 1
     ODerr=0
     SUCerr=0
-    for i in range(3):
-        temp = df.iloc[i::5,:].reset_index()
-        if len(temp.OD750)==len(test_data.OD750):
-            ODerr = np.average((test_data.OD750 - temp.OD750) ** 2, axis=0, weights=test_data.OD750)+ODerr
-        else:
-            ODerr = (((temp.OD750-test_data.OD750)/test_data.OD750)**2).mean()+ODerr
+    temp = df.groupby('IPTG').mean().reset_index()
+    if len(temp.OD750)==len(test_data.OD750):
+        ODerr = np.average((test_data.OD750 - temp.OD750) ** 2, axis=0, weights=test_data.OD750)+ODerr
+    else:
+        ODerr = (((temp.OD750-test_data.OD750)/test_data.OD750)**2).mean()+ODerr
 
-        if len(temp.Sucrose)==len(test_data.Sucrose):
-            SUCerr = np.average((test_data.Sucrose - temp.Sucrose) ** 2, axis=0, weights=test_data.Sucrose)+SUCerr
-        else:
-            SUCerr = (((temp.Sucrose-test_data.Sucrose)/test_data.Sucrose)**2).mean()+SUCerr
+    if len(temp.Sucrose)==len(test_data.Sucrose):
+        SUCerr = np.average((test_data.Sucrose - temp.Sucrose) ** 2, axis=0, weights=test_data.Sucrose)+SUCerr
+    else:
+        SUCerr = (((temp.Sucrose-test_data.Sucrose)/test_data.Sucrose)**2).mean()+SUCerr
     return ODerr + SUCerr
 #return  + (((df.Sucrose-test_data.Sucrose)/(test_data.Sucrose))**2).mean()
 #return mean_squared_error(df.OD750,test_data.OD750,sample_weight=test_data.OD750) + mean_squared_error(df.Sucrose,test_data.Sucrose, sample_weight=test_data.Sucrose)
 
+
 alpha_min = float('-5e-1')
-alpha_max = float('-1e-3')
+alpha_max = float('-1e-2')
 tau_min = float('1e-3')
 tau_max = float('1e-1')
 c_min = float('1e-3')
 c_max = float('5e-1')
+
 alpha2_min = float('-1e1')
-alpha2_max = float('0')
+alpha2_max = float('-1e-3')
 tau2_min = float('1e-3')
 tau2_max = float('1e-1')
-c2_min = float('0')
+c2_min = float('1e-3')
 c2_max = float('1e1')
 
 
