@@ -20,8 +20,6 @@ import seaborn as sns
 test_data = pd.read_excel('/mnt/home/sakkosjo/nufeb-cyano-e-coli/experimental-data/sucrose-OD-IPTG-sweep.xls',sheet_name='data')
 from scipy.optimize import curve_fit
 
-Nfeval = 1
-
 def od_func(x):
     """Exponential fit to IPTG vs OD750 experimental data
 
