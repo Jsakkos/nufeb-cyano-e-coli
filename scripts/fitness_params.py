@@ -41,7 +41,7 @@ def main(args):
     filein = open( f'/mnt/home/sakkosjo/nufeb-cyano-e-coli/templates/fix_bio_kinetics_monod_fitness.txt' )
     src = Template( filein.read() )
     result = src.safe_substitute({'fitness' : args.fitness, 'biomass_flux' : args.sucrose})
-    with open(f"/mnt/gs18/scratch/users/sakkosjo/fitness-cost/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
+    with open(f"/mnt/home/sakkosjo/fitness-cost/src/USER-NUFEB/fix_bio_kinetics_monod.cpp","w") as f:
         f.writelines(result)
 def run():
     """Calls :func:`main` passing the CLI arguments extracted from :obj:`sys.argv`
