@@ -503,10 +503,10 @@ void FixKineticsMonod::growth_cyano(int i, int grid) {
   r2 = decay[i];
   //maintenance rate
   r3 = maintain[i];
-  r4 = r1 * (${alpha} * exp(-suc_exp/${tau}) + ${c});
+
   //sucrose export-induced growth reduction
   //r4 = r1 * (${alpha} * exp(-suc_exp/${tau}) + ${c}); 
-  r5 = r1 * (${alpha2} * exp(-suc_exp/${tau2}) + ${c2}); 
+  r5 = r1 * (0.1); 
   //nutrient utilization
   nur[isub][grid] += (-1 / yield[i]) * (r1 + r5) * xdensity[i][grid];
   nur[ico2][grid] += (-1 / yield[i]) * (r1 + r5) * xdensity[i][grid];
@@ -520,7 +520,7 @@ void FixKineticsMonod::growth_cyano(int i, int grid) {
   nur[isuc][grid] += 0.65 / yield[i] * r5 * xdensity[i][grid];
 
   //cyano overall growth rate
-  growrate[i][0][grid] = r4 - r2 - r3;
+  growrate[i][0][grid] = r1 - r2 - r3;
 }
 
 /* ----------------------------------------------------------------------
